@@ -19,10 +19,10 @@ Microsoft Fabric (Data Factory, OneLake, Lakehouse, Warehouse, Notebooks, Power 
 ## Status
 - [x] 1: Postgres setup, idempotent station seed script, Faker simulator
 - [x] 2: Bronze ingestion (Postgres incremental merge, GBFS, weather, historical trips)
-- [x] 3: Silver layer (flattening, dedup, schema drift handling)
-- [x] 4: Unstructured processing, Gold star schema
-- [x] 5: Semantic model, DAX, Power BI dashboards
-- [x] 6: Orchestration, data quality, CI/CD, documentation
+- [ ] 3: Silver layer (flattening, dedup, schema drift handling)
+- [ ] 4: Unstructured processing, Gold star schema
+- [ ] 5: Semantic model, DAX, Power BI dashboards
+- [ ] 6: Orchestration, data quality, CI/CD, documentation
 
 ## Repo contents
 - `seed_stations.py`: loads real station list from the GBFS feed into Postgres (idempotent upsert)
