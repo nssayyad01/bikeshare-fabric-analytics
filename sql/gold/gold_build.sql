@@ -177,3 +177,75 @@ LEFT JOIN (SELECT DISTINCT station_id FROM gold.dim_station WHERE station_type =
 LEFT JOIN gold.dim_station cur
        ON cur.station_id = s.station_id AND cur.station_type = 'current' AND cur.is_current = 1
 WHERE cur.station_id IS NULL;
+
+-- 11 extra dates (tickets, tasks, text) that are not in the first dim_date build
+INSERT INTO gold.dim_date (date_key, full_date, year_num, month_num, month_name, day_num, day_name, is_weekend)
+SELECT CAST(YEAR(x.dt) * 10000 + MONTH(x.dt) * 100 + DAY(x.dt) AS int), x.dt,
+       YEAR(x.dt), MONTH(x.dt), CAST(DATENAME(month, x.dt) AS varchar(20)), DAY(x.dt),
+       CAST(DATENAME(weekday, x.dt) AS varchar(20)),
+       CASE WHEN DATENAME(weekday, x.dt) IN ('Saturday', 'Sunday') THEN 1 ELSE 0 END
+FROM (
+    SELECT CAST(created_at AS date) AS dt FROM lh_silver.dbo.maintenance_tickets
+    UNION SELECT CAST(updated_at AS date) FROM lh_silver.dbo.maintenance_tickets
+    UNION SELECT CAST(assigned_at AS date) FROM lh_silver.dbo.rebalancing_tasks
+    UNION SELECT CAST(completed_at AS date) FROM lh_silver.dbo.rebalancing_tasks
+    UNION SELECT CAST(updated_at AS date) FROM lh_silver.dbo.rebalancing_tasks
+    UNION SELECT CAST(created_at AS date) FROM lh_silver.dbo.text_docs
+) x
+LEFT JOIN gold.dim_date d ON d.full_date = x.dt
+WHERE x.dt IS NOT NULL AND d.full_date IS NULL;
+
+-- 12 fact_maintenance_tickets (station version chosen by ticket time)
+CREATE TABLE gold.fact_maintenance_tickets AS
+SELECT CAST(t.ticket_id AS int) AS ticket_id,
+       COALESCE(ds.station_key, -1) AS station_key,
+       CAST(YEAR(t.created_at) * 10000 + MONTH(t.created_at) * 100 + DAY(t.created_at) AS int) AS created_date_key,
+       t.created_at, t.updated_at,
+       CAST(t.issue_category AS varchar(20)) AS issue_category,
+       CAST(tx.predicted_category AS varchar(20)) AS predicted_category,
+       CAST(t.status AS varchar(10)) AS status,
+       CAST(t.is_open AS int) AS is_open,
+       CAST(t.technician_note AS varchar(500)) AS technician_note
+FROM lh_silver.dbo.maintenance_tickets t
+LEFT JOIN lh_silver.dbo.text_docs tx ON tx.doc_id = t.doc_id
+LEFT JOIN gold.dim_station ds
+       ON ds.station_id = t.station_id AND ds.station_type = 'current'
+      AND t.created_at >= ds.valid_from AND t.created_at < ds.valid_to;
+
+-- 13 fact_rebalancing_tasks (completed_date_key is NULL for pending tasks)
+CREATE TABLE gold.fact_rebalancing_tasks AS
+SELECT CAST(t.task_id AS int) AS task_id,
+       COALESCE(fs.station_key, -1) AS from_station_key,
+       COALESCE(ts.station_key, -1) AS to_station_key,
+       CAST(YEAR(t.assigned_at) * 10000 + MONTH(t.assigned_at) * 100 + DAY(t.assigned_at) AS int) AS assigned_date_key,
+       CASE WHEN t.completed_at IS NULL THEN NULL
+            ELSE CAST(YEAR(t.completed_at) * 10000 + MONTH(t.completed_at) * 100 + DAY(t.completed_at) AS int) END AS completed_date_key,
+       t.assigned_at, t.completed_at, t.updated_at,
+       CAST(t.bikes_count AS int) AS bikes_count,
+       CAST(t.status AS varchar(10)) AS status,
+       CAST(t.is_completed AS int) AS is_completed,
+       CAST(t.duration_minutes AS float) AS duration_minutes
+FROM lh_silver.dbo.rebalancing_tasks t
+LEFT JOIN gold.dim_station fs
+       ON fs.station_id = t.from_station_id AND fs.station_type = 'current'
+      AND t.assigned_at >= fs.valid_from AND t.assigned_at < fs.valid_to
+LEFT JOIN gold.dim_station ts
+       ON ts.station_id = t.to_station_id AND ts.station_type = 'current'
+      AND t.assigned_at >= ts.valid_from AND t.assigned_at < ts.valid_to;
+
+-- 14 fact_rider_feedback (true_category is the simulator's answer key, kept only to measure accuracy)
+CREATE TABLE gold.fact_rider_feedback AS
+SELECT CAST(x.doc_id AS varchar(30)) AS feedback_doc_id,
+       COALESCE(ds.station_key, -1) AS station_key,
+       CAST(YEAR(x.created_at) * 10000 + MONTH(x.created_at) * 100 + DAY(x.created_at) AS int) AS created_date_key,
+       x.created_at, x.updated_at,
+       CAST(x.label_original AS varchar(30)) AS true_category,
+       CAST(x.predicted_category AS varchar(30)) AS predicted_category,
+       CAST(x.predicted_sentiment AS varchar(10)) AS predicted_sentiment,
+       CAST(x.is_match AS int) AS category_correct,
+       CAST(x.text AS varchar(500)) AS feedback_text
+FROM lh_silver.dbo.text_docs x
+LEFT JOIN gold.dim_station ds
+       ON ds.station_id = x.station_id AND ds.station_type = 'current'
+      AND x.created_at >= ds.valid_from AND x.created_at < ds.valid_to
+WHERE x.source = 'rider_feedback';

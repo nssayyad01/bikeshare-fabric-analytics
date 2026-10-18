@@ -20,7 +20,7 @@ Microsoft Fabric (Data Factory, OneLake, Lakehouse, Warehouse, Notebooks, Power 
 - [x] 1: Postgres setup, idempotent station seed script, Faker simulator
 - [x] 2: Bronze ingestion (Postgres incremental merge, GBFS, weather, historical trips)
 - [x] Week 3: Silver layer (schema drift merge for trips, GBFS flatten + incremental load, weather with forecast handling, station mapping, Postgres tables via MERGE)
-- [ ] 4: Unstructured processing, Gold star schema
+- [x] Week 4: Gold star schema (SCD2 dim_station, 5 fact tables), text classification for technician notes and rider feedback (rule-based, 198/200 on simulated feedback). City PDF reports still pending.
 - [ ] 5: Semantic model, DAX, Power BI dashboards
 - [ ] 6: Orchestration, data quality, CI/CD, documentation
 
