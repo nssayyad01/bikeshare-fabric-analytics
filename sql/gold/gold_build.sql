@@ -249,3 +249,8 @@ LEFT JOIN gold.dim_station ds
        ON ds.station_id = x.station_id AND ds.station_type = 'current'
       AND x.created_at >= ds.valid_from AND x.created_at < ds.valid_to
 WHERE x.source = 'rider_feedback';
+
+-- 15 readable weather label (added after the first dim_weather build; run after section 03)
+ALTER TABLE gold.dim_weather ADD weather_label varchar(12);
+UPDATE gold.dim_weather
+SET weather_label = CASE WHEN is_raining = 1 THEN 'Rain/Snow' ELSE 'Dry' END;
