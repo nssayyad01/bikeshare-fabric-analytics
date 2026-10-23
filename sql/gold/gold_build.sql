@@ -254,3 +254,10 @@ WHERE x.source = 'rider_feedback';
 ALTER TABLE gold.dim_weather ADD weather_label varchar(12);
 UPDATE gold.dim_weather
 SET weather_label = CASE WHEN is_raining = 1 THEN 'Rain/Snow' ELSE 'Dry' END;
+-- Section 16: start_hour on fact_trips (added Week 5, run once in Fabric)
+-- Needed for the "Trips by Hour of Day" chart.
+-- Assumption: started_at is NYC local time (hourly pattern looked local, not verified against the source docs).
+ALTER TABLE gold.fact_trips ADD start_hour smallint;
+
+UPDATE gold.fact_trips
+SET start_hour = DATEPART(hour, started_at);
