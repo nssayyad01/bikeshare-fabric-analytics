@@ -199,4 +199,10 @@ All timestamps in Silver and Gold are UTC unless the column name ends in `_local
 | processed_at | datetime2 | |
 
 ---
+---
 
+## Verified assumptions
+
+- **start_hour (fact_trips):** Treated as NYC local time. The hourly pattern matches NYC commute peaks (08:00 and 17:00) and the overnight trough (03:00 to 04:00), so this is an inference from the data. Not confirmed against Citi Bike's documentation. Checked on the 2024 data only.
+- **trip_id (2013 trips):** SHA-256 hash of `bikeid|starttime|start station id`. The 2013 files have no unique trip ID, so two trips with the same bike, start time and start station would collapse into one row. This is a known limitation.
+- **Historical stations:** 174,780 trips (about 13% of fact_trips) start at a station with `station_type = 'historical'`. These are included in trip counts. Their coordinates come from the trip data (averaged), not from GBFS.
