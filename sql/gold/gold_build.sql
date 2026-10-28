@@ -508,9 +508,10 @@ LEFT JOIN gold.dim_station ts
       AND t.assigned_at >= ts.valid_from AND t.assigned_at < ts.valid_to
 WHERE f.task_id IS NULL;
 
--- 19g-5 feedback UPDATE
+-- 19g-5 feedback UPDATE (feedback_text included, tested on feedback_59)
 UPDATE f
-SET f.predicted_category = CAST(x.predicted_category AS varchar(30)),
+SET f.feedback_text = CAST(x.text AS varchar(500)),
+    f.predicted_category = CAST(x.predicted_category AS varchar(30)),
     f.predicted_sentiment = CAST(x.predicted_sentiment AS varchar(10)),
     f.category_correct = CAST(x.is_match AS int),
     f.updated_at = x.updated_at
