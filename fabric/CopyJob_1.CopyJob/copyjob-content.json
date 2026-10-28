@@ -1,0 +1,432 @@
+{
+  "properties": {
+    "jobMode": "CDC",
+    "fullLoadBehavior": "Truncate",
+    "source": {
+      "type": "PostgreSqlTable",
+      "connectionSettings": {
+        "type": "PostgreSql",
+        "externalReferences": {
+          "connection": "d9b79740-f0cc-40b1-87bd-09c4ef5f5298"
+        }
+      }
+    },
+    "destination": {
+      "type": "LakehouseTable",
+      "connectionSettings": {
+        "type": "Lakehouse",
+        "typeProperties": {
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "artifactId": "8198d308-9e73-b17b-407d-6c2a5ea67565",
+          "rootFolder": "Tables"
+        }
+      }
+    },
+    "policy": {
+      "timeout": "0.12:00:00",
+      "retry": 0
+    }
+  },
+  "activities": [
+    {
+      "id": "2f6cf544-14ed-4c93-9f1e-7a3cc14c7da4",
+      "properties": {
+        "source": {
+          "datasetSettings": {
+            "schema": "public",
+            "table": "maintenance_tickets"
+          },
+          "changeDataSettings": {
+            "readMethod": "SnapshotPlusIncremental",
+            "columns": [
+              {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              }
+            ],
+            "nullWatermarkBehavior": "Skip"
+          }
+        },
+        "destination": {
+          "upsertSettings": {
+            "keys": [
+              "ticket_id"
+            ]
+          },
+          "writeBehavior": "Upsert",
+          "datasetSettings": {
+            "schema": "public",
+            "table": "maintenance_tickets"
+          },
+          "applyVOrder": false,
+          "enableTimestampNtz": false,
+          "enableChangeDataFeed": false
+        },
+        "enableStaging": false,
+        "translator": {
+          "type": "TabularTranslator",
+          "mappings": [
+            {
+              "source": {
+                "name": "ticket_id",
+                "type": "Int32",
+                "physicalType": "integer"
+              },
+              "destination": {
+                "name": "ticket_id",
+                "physicalType": "integer"
+              }
+            },
+            {
+              "source": {
+                "name": "station_id",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "station_id",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "issue_category",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "issue_category",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "technician_note",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "technician_note",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "status",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "status",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "created_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "created_at",
+                "physicalType": "timestamp"
+              }
+            },
+            {
+              "source": {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "updated_at",
+                "physicalType": "timestamp"
+              }
+            }
+          ]
+        },
+        "typeConversionSettings": {
+          "typeConversion": {
+            "allowDataTruncation": true,
+            "treatBooleanAsNumber": false
+          }
+        }
+      }
+    },
+    {
+      "id": "5c902c4c-cf48-4725-91f2-87d43e12d71e",
+      "properties": {
+        "source": {
+          "datasetSettings": {
+            "schema": "public",
+            "table": "rebalancing_tasks"
+          },
+          "changeDataSettings": {
+            "readMethod": "SnapshotPlusIncremental",
+            "columns": [
+              {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              }
+            ],
+            "nullWatermarkBehavior": "Skip"
+          }
+        },
+        "destination": {
+          "upsertSettings": {
+            "keys": [
+              "task_id"
+            ]
+          },
+          "writeBehavior": "Upsert",
+          "datasetSettings": {
+            "schema": "public",
+            "table": "rebalancing_tasks"
+          },
+          "applyVOrder": false,
+          "enableTimestampNtz": false,
+          "enableChangeDataFeed": false
+        },
+        "enableStaging": false,
+        "translator": {
+          "type": "TabularTranslator",
+          "mappings": [
+            {
+              "source": {
+                "name": "task_id",
+                "type": "Int32",
+                "physicalType": "integer"
+              },
+              "destination": {
+                "name": "task_id",
+                "physicalType": "integer"
+              }
+            },
+            {
+              "source": {
+                "name": "from_station_id",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "from_station_id",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "to_station_id",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "to_station_id",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "bikes_count",
+                "type": "Int32",
+                "physicalType": "integer"
+              },
+              "destination": {
+                "name": "bikes_count",
+                "physicalType": "integer"
+              }
+            },
+            {
+              "source": {
+                "name": "status",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "status",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "assigned_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "assigned_at",
+                "physicalType": "timestamp"
+              }
+            },
+            {
+              "source": {
+                "name": "completed_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "completed_at",
+                "physicalType": "timestamp"
+              }
+            },
+            {
+              "source": {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "updated_at",
+                "physicalType": "timestamp"
+              }
+            }
+          ]
+        },
+        "typeConversionSettings": {
+          "typeConversion": {
+            "allowDataTruncation": true,
+            "treatBooleanAsNumber": false
+          }
+        }
+      }
+    },
+    {
+      "id": "afc1ce42-0a80-42fa-b605-cd03c08c521f",
+      "properties": {
+        "source": {
+          "datasetSettings": {
+            "schema": "public",
+            "table": "stations"
+          },
+          "changeDataSettings": {
+            "readMethod": "SnapshotPlusIncremental",
+            "columns": [
+              {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              }
+            ],
+            "nullWatermarkBehavior": "Skip"
+          }
+        },
+        "destination": {
+          "upsertSettings": {
+            "keys": [
+              "station_id"
+            ]
+          },
+          "writeBehavior": "Upsert",
+          "datasetSettings": {
+            "schema": "public",
+            "table": "stations"
+          },
+          "applyVOrder": false,
+          "enableTimestampNtz": false,
+          "enableChangeDataFeed": false
+        },
+        "enableStaging": false,
+        "translator": {
+          "type": "TabularTranslator",
+          "mappings": [
+            {
+              "source": {
+                "name": "station_id",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "station_id",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "station_name",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "station_name",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "region",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "region",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "capacity",
+                "type": "Int32",
+                "physicalType": "integer"
+              },
+              "destination": {
+                "name": "capacity",
+                "physicalType": "integer"
+              }
+            },
+            {
+              "source": {
+                "name": "lat",
+                "type": "Double",
+                "physicalType": "double precision"
+              },
+              "destination": {
+                "name": "lat",
+                "physicalType": "double"
+              }
+            },
+            {
+              "source": {
+                "name": "lon",
+                "type": "Double",
+                "physicalType": "double precision"
+              },
+              "destination": {
+                "name": "lon",
+                "physicalType": "double"
+              }
+            },
+            {
+              "source": {
+                "name": "status",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "status",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "updated_at",
+                "physicalType": "timestamp"
+              }
+            }
+          ]
+        },
+        "typeConversionSettings": {
+          "typeConversion": {
+            "allowDataTruncation": true,
+            "treatBooleanAsNumber": false
+          }
+        }
+      }
+    }
+  ]
+}

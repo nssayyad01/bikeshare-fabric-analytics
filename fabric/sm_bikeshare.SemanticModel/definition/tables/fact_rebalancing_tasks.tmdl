@@ -1,0 +1,151 @@
+table fact_rebalancing_tasks
+	lineageTag: d01dd98a-886c-4ebb-aa6e-2e01895cd2b9
+	sourceLineageTag: [gold].[fact_rebalancing_tasks]
+
+	measure 'Pending Tasks' = CALCULATE(COUNTROWS(fact_rebalancing_tasks), fact_rebalancing_tasks[is_completed] = 0)
+		formatString: 0
+		lineageTag: 46b170f1-b287-4290-87fb-b96eaa28e49c
+
+		changedProperty = Name
+
+	column task_id
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: bc02d4b5-ec86-4ec3-8395-6dd251268f10
+		sourceLineageTag: task_id
+		summarizeBy: sum
+		sourceColumn: task_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column from_station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e06ce26c-5c19-4117-a95a-9a031eb20833
+		sourceLineageTag: from_station_key
+		summarizeBy: none
+		sourceColumn: from_station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column to_station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f6973927-1d78-4f12-97a0-01c75b1796bd
+		sourceLineageTag: to_station_key
+		summarizeBy: sum
+		sourceColumn: to_station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column assigned_date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 45414738-1859-478e-9013-e3bff528b98e
+		sourceLineageTag: assigned_date_key
+		summarizeBy: none
+		sourceColumn: assigned_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column completed_date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 8dc71b4a-4c3e-4819-8d02-45ee1d2181d1
+		sourceLineageTag: completed_date_key
+		summarizeBy: sum
+		sourceColumn: completed_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column assigned_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 526126a3-88a8-43a5-b6cd-0341eebeb194
+		sourceLineageTag: assigned_at
+		summarizeBy: none
+		sourceColumn: assigned_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column completed_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 12669a35-4e5f-4c49-ad1e-93a8d06c47c3
+		sourceLineageTag: completed_at
+		summarizeBy: none
+		sourceColumn: completed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column updated_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 56a221e2-0da7-43af-a24a-23e9bce1cfa3
+		sourceLineageTag: updated_at
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column bikes_count
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 73bd893d-ca6a-44d7-9057-ebe830c52a22
+		sourceLineageTag: bikes_count
+		summarizeBy: sum
+		sourceColumn: bikes_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 340819d4-b494-4035-ac24-ebea5a41683e
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_completed
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: bd3b5215-e00a-49fe-a3c7-63b949cccc73
+		sourceLineageTag: is_completed
+		summarizeBy: sum
+		sourceColumn: is_completed
+
+		annotation SummarizationSetBy = Automatic
+
+	column duration_minutes
+		dataType: double
+		sourceProviderType: float
+		lineageTag: f0436b5f-5221-4323-9c12-76f2a66f6697
+		sourceLineageTag: duration_minutes
+		summarizeBy: sum
+		sourceColumn: duration_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_rebalancing_tasks = entity
+		mode: directLake
+		source
+			entityName: fact_rebalancing_tasks
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

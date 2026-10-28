@@ -1,0 +1,352 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "dd592725-43d2-a2c3-4867-0e2894d35acc",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "externalReferences": {
+          "connection": "69bf370f-8bec-4d4a-886d-9b537fcc3a5e"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 2,
+          "retryIntervalInSeconds": 120,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "nb_refresh_gbfs",
+        "dependsOn": []
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "fdaf950d-aa1f-9a64-4eb1-4938579ff377",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "externalReferences": {
+          "connection": "69bf370f-8bec-4d4a-886d-9b537fcc3a5e"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 2,
+          "retryIntervalInSeconds": 120,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "nb_refresh_weather",
+        "dependsOn": [
+          {
+            "activity": "nb_refresh_gbfs",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.dim_date (date_key, full_date, year_num, month_num, month_name, day_num, day_name, is_weekend)\nSELECT\n    CAST(YEAR(x.dt) * 10000 + MONTH(x.dt) * 100 + DAY(x.dt) AS int),\n    x.dt,\n    YEAR(x.dt),\n    MONTH(x.dt),\n    CAST(DATENAME(month, x.dt) AS varchar(20)),\n    DAY(x.dt),\n    CAST(DATENAME(weekday, x.dt) AS varchar(20)),\n    CASE WHEN DATENAME(weekday, x.dt) IN ('Saturday', 'Sunday') THEN 1 ELSE 0 END\nFROM (\n    SELECT DISTINCT CAST(CAST(snapshot_ts AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' AS datetime2(0)) AS date) AS dt\n    FROM lh_silver.dbo.gbfs_station_status\n) x\nLEFT JOIN gold.dim_date d ON d.full_date = x.dt\nWHERE d.full_date IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_dim_date_insert",
+        "dependsOn": [
+          {
+            "activity": "nb_refresh_weather",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "UPDATE gold.dim_date\nSET day_sort = CASE day_name\n    WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3\n    WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6\n    WHEN 'Sunday' THEN 7\nEND\nWHERE day_sort IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_dim_date_daysort",
+        "dependsOn": [
+          {
+            "activity": "gold_dim_date_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.dim_weather\n    (weather_key, hour_ts_utc, hour_ts_local, temperature_c, precipitation_mm,\n     wind_speed_kmh, is_raining, source, weather_label)\nSELECT\n    CAST(YEAR(w.hour_ts_utc) * 1000000 + MONTH(w.hour_ts_utc) * 10000\n         + DAY(w.hour_ts_utc) * 100 + DATEPART(hour, w.hour_ts_utc) AS bigint),\n    w.hour_ts_utc,\n    CAST(w.hour_ts_utc AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' AS datetime2(0)),\n    w.temperature_c,\n    w.precipitation_mm,\n    w.wind_speed_kmh,\n    CASE WHEN w.precipitation_mm > 0 THEN 1 ELSE 0 END,\n    CAST('live' AS varchar(10)),\n    CAST(CASE WHEN w.precipitation_mm > 0 THEN 'Rain/Snow' ELSE 'Dry' END AS varchar(12))\nFROM lh_silver.dbo.weather_hourly w\nLEFT JOIN gold.dim_weather d\n       ON d.hour_ts_utc = w.hour_ts_utc AND d.source = 'live'\nWHERE w.is_forecast = 0\n  AND d.hour_ts_utc IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_dim_weather_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_dim_date_daysort",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "UPDATE d\nSET d.valid_to = CAST(s.updated_at AS datetime2(0)), d.is_current = 0\nFROM gold.dim_station d\nJOIN lh_silver.dbo.stations s ON s.station_id = d.station_id\nWHERE d.station_type = 'current' AND d.is_current = 1\n  AND (d.capacity <> s.capacity OR d.station_name <> s.station_name\n       OR ISNULL(d.region, 'x') <> ISNULL(s.region, 'x'))",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_dim_station_update",
+        "dependsOn": [
+          {
+            "activity": "gold_dim_weather_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.dim_station\n    (station_key, station_id, station_name, region, capacity, lat, lon,\n     station_type, valid_from, valid_to, is_current)\nSELECT mk.max_key + ROW_NUMBER() OVER (ORDER BY s.station_id),\n       CAST(s.station_id AS varchar(100)), CAST(s.station_name AS varchar(200)),\n       CAST(s.region AS varchar(50)), CAST(s.capacity AS int),\n       CAST(s.lat AS float), CAST(s.lon AS float), CAST('current' AS varchar(20)),\n       CASE WHEN prev.station_id IS NULL THEN CAST('1900-01-01' AS datetime2(0))\n            ELSE CAST(s.updated_at AS datetime2(0)) END,\n       CAST('9999-12-31' AS datetime2(0)), CAST(1 AS int)\nFROM lh_silver.dbo.stations s\nCROSS JOIN (SELECT MAX(station_key) AS max_key FROM gold.dim_station) mk\nLEFT JOIN (SELECT DISTINCT station_id FROM gold.dim_station WHERE station_type = 'current') prev\n       ON prev.station_id = s.station_id\nLEFT JOIN gold.dim_station cur\n       ON cur.station_id = s.station_id AND cur.station_type = 'current' AND cur.is_current = 1\nWHERE cur.station_id IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_dim_station_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_dim_station_update",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.fact_station_status\n    (station_key, date_key, weather_key, snapshot_ts, snapshot_ts_local,\n     num_bikes_available, num_ebikes_available, num_bikes_disabled,\n     num_docks_available, num_docks_disabled,\n     is_installed, is_renting, is_returning, is_empty, is_full)\nSELECT\n    COALESCE(ds.station_key, -1),\n    CAST(YEAR(s.snapshot_ts_local) * 10000 + MONTH(s.snapshot_ts_local) * 100\n         + DAY(s.snapshot_ts_local) AS int),\n    w.weather_key,\n    s.snapshot_ts,\n    s.snapshot_ts_local,\n    s.num_bikes_available, s.num_ebikes_available, s.num_bikes_disabled,\n    s.num_docks_available, s.num_docks_disabled,\n    s.is_installed, s.is_renting, s.is_returning,\n    CASE WHEN s.num_bikes_available = 0 THEN 1 ELSE 0 END,\n    CASE WHEN s.num_docks_available = 0 THEN 1 ELSE 0 END\nFROM (\n    SELECT CAST(station_id AS varchar(100)) AS station_id,\n           snapshot_ts,\n           CAST(snapshot_ts AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' AS datetime2(0)) AS snapshot_ts_local,\n           CAST(YEAR(snapshot_ts) * 1000000 + MONTH(snapshot_ts) * 10000\n                + DAY(snapshot_ts) * 100 + DATEPART(hour, snapshot_ts) AS bigint) AS weather_key_utc,\n           CAST(num_bikes_available AS int)  AS num_bikes_available,\n           CAST(num_ebikes_available AS int) AS num_ebikes_available,\n           CAST(num_bikes_disabled AS int)   AS num_bikes_disabled,\n           CAST(num_docks_available AS int)  AS num_docks_available,\n           CAST(num_docks_disabled AS int)   AS num_docks_disabled,\n           CAST(is_installed AS int)         AS is_installed,\n           CAST(is_renting AS int)           AS is_renting,\n           CAST(is_returning AS int)         AS is_returning\n    FROM lh_silver.dbo.gbfs_station_status\n) s\nLEFT JOIN (SELECT DISTINCT snapshot_ts FROM gold.fact_station_status) f\n       ON f.snapshot_ts = s.snapshot_ts\nLEFT JOIN gold.dim_station ds\n       ON ds.station_id = s.station_id AND ds.station_type = 'current'\n      AND s.snapshot_ts >= ds.valid_from AND s.snapshot_ts < ds.valid_to\nLEFT JOIN gold.dim_weather w\n       ON w.weather_key = s.weather_key_utc AND w.source = 'live'\nWHERE f.snapshot_ts IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_station_status_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_dim_station_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.audit_runs (run_ts, check_name, result_value, expected_value, status)\nSELECT SYSDATETIME(), 'unknown_station_rows',\n       (SELECT COUNT(*) FROM gold.fact_station_status WHERE station_key = -1), NULL,\n       CASE WHEN (SELECT COUNT(*) FROM gold.fact_station_status WHERE station_key = -1) > 1000 THEN 'WARN' ELSE 'PASS' END\nUNION ALL\nSELECT SYSDATETIME(), 'orphan_dates',\n       (SELECT COUNT(*) FROM gold.fact_station_status f\n          LEFT JOIN gold.dim_date d ON d.date_key = f.date_key\n         WHERE d.date_key IS NULL), 0,\n       CASE WHEN (SELECT COUNT(*) FROM gold.fact_station_status f\n                    LEFT JOIN gold.dim_date d ON d.date_key = f.date_key\n                   WHERE d.date_key IS NULL) = 0 THEN 'PASS' ELSE 'FAIL' END\nUNION ALL\nSELECT SYSDATETIME(), 'duplicate_keys',\n       (SELECT COUNT(*) FROM (SELECT station_key, snapshot_ts FROM gold.fact_station_status\n          GROUP BY station_key, snapshot_ts HAVING COUNT(*) > 1) x), 0,\n       CASE WHEN (SELECT COUNT(*) FROM (SELECT station_key, snapshot_ts FROM gold.fact_station_status\n          GROUP BY station_key, snapshot_ts HAVING COUNT(*) > 1) x) = 0 THEN 'PASS' ELSE 'FAIL' END\nUNION ALL\nSELECT SYSDATETIME(), 'freshness_minutes_behind_silver',\n       DATEDIFF(MINUTE, (SELECT MAX(snapshot_ts) FROM gold.fact_station_status),\n                        (SELECT MAX(snapshot_ts) FROM lh_silver.dbo.gbfs_station_status)), 30,\n       CASE WHEN DATEDIFF(MINUTE, (SELECT MAX(snapshot_ts) FROM gold.fact_station_status),\n                        (SELECT MAX(snapshot_ts) FROM lh_silver.dbo.gbfs_station_status)) <= 30 THEN 'PASS' ELSE 'WARN' END",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_audit_checks",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_station_status_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

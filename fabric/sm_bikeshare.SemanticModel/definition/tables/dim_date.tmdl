@@ -1,0 +1,115 @@
+table dim_date
+	lineageTag: 4471ca03-5a24-4cc9-959f-030c6e5db2c4
+	sourceLineageTag: [gold].[dim_date]
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d3307ee6-f823-49c1-a8c4-bc9f3eac5bb8
+		sourceLineageTag: date_key
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: c1743161-06fb-4de8-96b5-bd68391ca37a
+		sourceLineageTag: full_date
+		summarizeBy: none
+		sourceColumn: full_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_num
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: cb1721e0-94be-482e-bef5-c6b16dbe2b18
+		sourceLineageTag: year_num
+		summarizeBy: sum
+		sourceColumn: year_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_num
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 26c74f7a-7ce4-4ce4-aa7a-e95ad26e6a9f
+		sourceLineageTag: month_num
+		summarizeBy: sum
+		sourceColumn: month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 67e6a2a2-db24-42f9-9042-af3b02b7be8d
+		sourceLineageTag: month_name
+		summarizeBy: none
+		sourceColumn: month_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_num
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 67674dab-e2cf-4ca8-a701-72ecd3f0f695
+		sourceLineageTag: day_num
+		summarizeBy: sum
+		sourceColumn: day_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_name
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 4b5d643c-8109-4cfd-8f49-5bcb35aabb5c
+		sourceLineageTag: day_name
+		summarizeBy: none
+		sourceColumn: day_name
+		sortByColumn: day_sort
+
+		changedProperty = IsHidden
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 218bdf40-5d0c-47a6-a422-a894c98eaad5
+		sourceLineageTag: is_weekend
+		summarizeBy: sum
+		sourceColumn: is_weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_sort
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 7fd7828d-9a9f-4ead-9925-e35cd6e58f89
+		sourceLineageTag: day_sort
+		summarizeBy: sum
+		sourceColumn: day_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = entity
+		mode: directLake
+		source
+			entityName: dim_date
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

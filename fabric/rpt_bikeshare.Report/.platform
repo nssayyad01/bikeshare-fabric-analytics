@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "rpt_bikeshare"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d31c0a68-7030-b81f-4987-b7066053be57"
+  }
+}
