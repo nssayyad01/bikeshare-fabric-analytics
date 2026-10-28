@@ -1,0 +1,132 @@
+table dim_station
+	lineageTag: 981351e2-df5f-42c7-bbed-b398a0414978
+	sourceLineageTag: [gold].[dim_station]
+
+	column station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 61183bdc-1e23-44c6-b29c-f64ed6e2a378
+		sourceLineageTag: station_key
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_id
+		dataType: string
+		sourceProviderType: varchar(100)
+		lineageTag: af3d8567-b39b-40bd-9288-0517b4e7dd97
+		sourceLineageTag: station_id
+		summarizeBy: none
+		sourceColumn: station_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_name
+		dataType: string
+		sourceProviderType: varchar(200)
+		lineageTag: 2f4f93ae-bd24-4091-93b0-43502fa43fbb
+		sourceLineageTag: station_name
+		summarizeBy: none
+		sourceColumn: station_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 8879d826-6e23-48a0-87af-17d7400c23d0
+		sourceLineageTag: region
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column capacity
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: dcbb1d31-da3e-4c00-945c-e3ec66c8f774
+		sourceLineageTag: capacity
+		summarizeBy: sum
+		sourceColumn: capacity
+
+		annotation SummarizationSetBy = Automatic
+
+	column lat
+		dataType: double
+		sourceProviderType: float
+		lineageTag: be85c39f-abe6-4a5f-8934-b4627b7cf357
+		sourceLineageTag: lat
+		summarizeBy: sum
+		sourceColumn: lat
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column lon
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 622a3e8e-c261-418d-973d-6e47c7053ff1
+		sourceLineageTag: lon
+		summarizeBy: sum
+		sourceColumn: lon
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column station_type
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 21b263a5-9c4a-45b3-abca-5a3a47fdb58b
+		sourceLineageTag: station_type
+		summarizeBy: none
+		sourceColumn: station_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_from
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 49f01442-79f6-4a19-9b3b-79783ba29c6b
+		sourceLineageTag: valid_from
+		summarizeBy: none
+		sourceColumn: valid_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_to
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: dbad6da7-c17e-4670-bb12-c7d3da8746b7
+		sourceLineageTag: valid_to
+		summarizeBy: none
+		sourceColumn: valid_to
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_current
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 761f6878-88b3-437d-9a0c-1c394211d8ed
+		sourceLineageTag: is_current
+		summarizeBy: sum
+		sourceColumn: is_current
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_station = entity
+		mode: directLake
+		source
+			entityName: dim_station
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

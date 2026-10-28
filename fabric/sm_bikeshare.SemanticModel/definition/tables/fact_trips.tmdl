@@ -1,0 +1,207 @@
+table fact_trips
+	lineageTag: 9f4efc1a-e322-42cc-a838-97e293ff9a57
+	sourceLineageTag: [gold].[fact_trips]
+
+	measure 'Total Trips' = COUNTROWS(fact_trips)
+		formatString: 0
+		lineageTag: 23953850-c359-4a61-aa48-1cd5e656cc84
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Trips by End Station' =
+			
+			CALCULATE([Total Trips], USERELATIONSHIP(fact_trips[end_station_key], dim_station[station_key]))
+		formatString: 0
+		lineageTag: 9f0efe1a-5c5a-4da3-933c-a3c95bc59e71
+
+		changedProperty = Name
+
+	measure 'Trips per Hour' = DIVIDE([Total Trips], DISTINCTCOUNT(fact_trips[weather_key]))
+		lineageTag: 6e1f7ec4-794e-4303-81a3-7344897a2dbc
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Member Share %' =
+			
+			DIVIDE(
+			    CALCULATE(COUNTROWS(fact_trips), fact_trips[user_type] = "member"),
+			    COUNTROWS(fact_trips)
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 62e7eba8-d8f8-492a-bee3-d0911758e3eb
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Rain Drop %' =
+			
+			VAR _dry = CALCULATE([Trips per Hour], dim_weather[weather_label] = "Dry")
+			VAR _rain = CALCULATE([Trips per Hour], dim_weather[weather_label] = "Rain/Snow")
+			RETURN DIVIDE(_dry - _rain, _dry)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c1222762-7f36-4c49-a43c-ff24cc3527cf
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Dry Trips per Hour' =
+			
+			CALCULATE([Trips per Hour], dim_weather[weather_label] = "Dry")
+		lineageTag: 56391878-f27b-4e41-8654-e48b4d62f0f7
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rain Trips per Hour' =
+			
+			CALCULATE([Trips per Hour], dim_weather[weather_label] = "Rain/Snow")
+		lineageTag: 3579a338-259f-4b74-b01d-98b0df8d9e6b
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column trip_id
+		dataType: string
+		sourceProviderType: varchar(64)
+		lineageTag: 42700737-f394-43dc-a704-f59f630429d2
+		sourceLineageTag: trip_id
+		summarizeBy: none
+		sourceColumn: trip_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 03b534ab-4788-4041-95fd-2a908045e0b3
+		sourceLineageTag: date_key
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 6294c605-8b52-4579-9e20-1452e727efc6
+		sourceLineageTag: start_station_key
+		summarizeBy: none
+		sourceColumn: start_station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column end_station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ada51744-c7b8-4a9b-bb4b-b50826bbd193
+		sourceLineageTag: end_station_key
+		summarizeBy: sum
+		sourceColumn: end_station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column weather_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 2c99cbeb-0b6b-4a1e-8efa-286c3bb434b0
+		sourceLineageTag: weather_key
+		summarizeBy: none
+		sourceColumn: weather_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column started_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 087af597-1301-4682-bb97-f70e00544ff1
+		sourceLineageTag: started_at
+		summarizeBy: none
+		sourceColumn: started_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column ended_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 0f9ef190-229d-4adf-9a24-9a6810a3bdf6
+		sourceLineageTag: ended_at
+		summarizeBy: none
+		sourceColumn: ended_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column duration_sec
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 29543d26-adaf-483b-a882-da87aa7be262
+		sourceLineageTag: duration_sec
+		summarizeBy: sum
+		sourceColumn: duration_sec
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_type
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: f707f6e6-90d1-4cbf-adac-045823490e83
+		sourceLineageTag: user_type
+		summarizeBy: none
+		sourceColumn: user_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column rideable_type
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: e7100699-6ba7-414b-be7d-c966f03e86ee
+		sourceLineageTag: rideable_type
+		summarizeBy: none
+		sourceColumn: rideable_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_schema
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 526135ca-8c2f-4f42-a216-3010bc2aa362
+		sourceLineageTag: source_schema
+		summarizeBy: none
+		sourceColumn: source_schema
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_hour
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 80ef1fd7-6fb2-407a-8316-3becfe5bad18
+		sourceLineageTag: start_hour
+		summarizeBy: sum
+		sourceColumn: start_hour
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_trips = entity
+		mode: directLake
+		source
+			entityName: fact_trips
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

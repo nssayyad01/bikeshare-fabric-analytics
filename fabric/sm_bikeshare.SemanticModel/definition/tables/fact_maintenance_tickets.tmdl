@@ -1,0 +1,125 @@
+table fact_maintenance_tickets
+	lineageTag: 2c762d71-b6d6-482a-809b-8bb0e5ee6af8
+	sourceLineageTag: [gold].[fact_maintenance_tickets]
+
+	measure 'Open Tickets' = SUM(fact_maintenance_tickets[is_open])
+		formatString: 0
+		lineageTag: 38e6693a-e4f2-4599-8c4f-4d81ad93a8b0
+
+		changedProperty = Name
+
+	column ticket_id
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4e806db9-706c-4f8b-b5f5-7d6f20ea6f11
+		sourceLineageTag: ticket_id
+		summarizeBy: sum
+		sourceColumn: ticket_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f428c819-6472-425a-825d-d79ee71b7e46
+		sourceLineageTag: station_key
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 08e7ac8b-ac7d-4c59-a900-13b6d56c604e
+		sourceLineageTag: created_date_key
+		summarizeBy: none
+		sourceColumn: created_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 8d845b7b-d673-42d1-934c-99241b99ce46
+		sourceLineageTag: created_at
+		summarizeBy: none
+		sourceColumn: created_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column updated_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: b34e5788-d3f0-43a8-8f3f-143c6232309a
+		sourceLineageTag: updated_at
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column issue_category
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 1828102c-dbe0-46c3-8828-4addb46c55fa
+		sourceLineageTag: issue_category
+		summarizeBy: none
+		sourceColumn: issue_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column predicted_category
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 635b5cbc-0a89-4536-9690-49e3551ff071
+		sourceLineageTag: predicted_category
+		summarizeBy: none
+		sourceColumn: predicted_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 12be72a8-2866-4d49-9b96-72a5d8b56ad6
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_open
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 1b59015c-6fc5-4274-a7b3-7e9d570bb110
+		sourceLineageTag: is_open
+		summarizeBy: sum
+		sourceColumn: is_open
+
+		annotation SummarizationSetBy = Automatic
+
+	column technician_note
+		dataType: string
+		sourceProviderType: varchar(500)
+		lineageTag: e3931bad-07e1-45f0-b599-2bae8e083a33
+		sourceLineageTag: technician_note
+		summarizeBy: none
+		sourceColumn: technician_note
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_maintenance_tickets = entity
+		mode: directLake
+		source
+			entityName: fact_maintenance_tickets
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

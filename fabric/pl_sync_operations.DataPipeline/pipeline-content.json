@@ -1,0 +1,352 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "InvokeCopyJob",
+        "typeProperties": {
+          "copyJobId": "325b338b-e01a-b0d8-47bf-4901380890b2",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "externalReferences": {
+          "connection": "3b394a4b-13ff-4d6f-a11c-9e48cbf43f33"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "copy_neon_to_bronze",
+        "dependsOn": []
+      },
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "6e0cbce4-c5dd-8bee-44b1-eaf0928bb6e4",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "externalReferences": {
+          "connection": "69bf370f-8bec-4d4a-886d-9b537fcc3a5e"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 2,
+          "retryIntervalInSeconds": 120,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "nb_refresh_station_mapping",
+        "dependsOn": [
+          {
+            "activity": "copy_neon_to_bronze",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "UPDATE f\nSET f.status = CAST(t.status AS varchar(10)),\n    f.is_open = CAST(t.is_open AS int),\n    f.updated_at = t.updated_at,\n    f.predicted_category = CAST(tx.predicted_category AS varchar(20))\nFROM gold.fact_maintenance_tickets f\nJOIN lh_silver.dbo.maintenance_tickets t ON t.ticket_id = f.ticket_id\nLEFT JOIN lh_silver.dbo.text_docs tx ON tx.doc_id = t.doc_id\nWHERE t.updated_at > f.updated_at",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_tickets_update",
+        "dependsOn": [
+          {
+            "activity": "nb_refresh_station_mapping",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.fact_maintenance_tickets\n    (ticket_id, station_key, created_date_key, created_at, updated_at,\n     issue_category, predicted_category, status, is_open, technician_note)\nSELECT\n    CAST(t.ticket_id AS int),\n    COALESCE(ds.station_key, -1),\n    CAST(YEAR(t.created_at) * 10000 + MONTH(t.created_at) * 100 + DAY(t.created_at) AS int),\n    t.created_at,\n    t.updated_at,\n    CAST(t.issue_category AS varchar(20)),\n    CAST(tx.predicted_category AS varchar(20)),\n    CAST(t.status AS varchar(10)),\n    CAST(t.is_open AS int),\n    CAST(t.technician_note AS varchar(500))\nFROM lh_silver.dbo.maintenance_tickets t\nLEFT JOIN gold.fact_maintenance_tickets f ON f.ticket_id = t.ticket_id\nLEFT JOIN lh_silver.dbo.text_docs tx ON tx.doc_id = t.doc_id\nLEFT JOIN gold.dim_station ds\n       ON ds.station_id = t.station_id AND ds.station_type = 'current'\n      AND t.created_at >= ds.valid_from AND t.created_at < ds.valid_to\nWHERE f.ticket_id IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_tickets_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tickets_update",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "UPDATE f\nSET f.status = CAST(t.status AS varchar(10)),\n    f.is_completed = CAST(t.is_completed AS int),\n    f.completed_at = t.completed_at,\n    f.completed_date_key = CASE WHEN t.completed_at IS NULL THEN NULL\n        ELSE CAST(YEAR(t.completed_at) * 10000 + MONTH(t.completed_at) * 100\n                  + DAY(t.completed_at) AS int) END,\n    f.duration_minutes = CAST(t.duration_minutes AS float),\n    f.updated_at = t.updated_at\nFROM gold.fact_rebalancing_tasks f\nJOIN lh_silver.dbo.rebalancing_tasks t ON t.task_id = f.task_id\nWHERE t.updated_at > f.updated_at",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_tasks_update",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tickets_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.fact_rebalancing_tasks\n    (task_id, from_station_key, to_station_key, assigned_date_key, completed_date_key,\n     assigned_at, completed_at, updated_at, bikes_count, status, is_completed, duration_minutes)\nSELECT\n    CAST(t.task_id AS int),\n    COALESCE(fs.station_key, -1),\n    COALESCE(ts.station_key, -1),\n    CAST(YEAR(t.assigned_at) * 10000 + MONTH(t.assigned_at) * 100 + DAY(t.assigned_at) AS int),\n    CASE WHEN t.completed_at IS NULL THEN NULL\n         ELSE CAST(YEAR(t.completed_at) * 10000 + MONTH(t.completed_at) * 100\n                   + DAY(t.completed_at) AS int) END,\n    t.assigned_at, t.completed_at, t.updated_at,\n    CAST(t.bikes_count AS int),\n    CAST(t.status AS varchar(10)),\n    CAST(t.is_completed AS int),\n    CAST(t.duration_minutes AS float)\nFROM lh_silver.dbo.rebalancing_tasks t\nLEFT JOIN gold.fact_rebalancing_tasks f ON f.task_id = t.task_id\nLEFT JOIN gold.dim_station fs\n       ON fs.station_id = t.from_station_id AND fs.station_type = 'current'\n      AND t.assigned_at >= fs.valid_from AND t.assigned_at < fs.valid_to\nLEFT JOIN gold.dim_station ts\n       ON ts.station_id = t.to_station_id AND ts.station_type = 'current'\n      AND t.assigned_at >= ts.valid_from AND t.assigned_at < ts.valid_to\nWHERE f.task_id IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_tasks_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tasks_update",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "UPDATE f\nSET f.feedback_text = CAST(x.text AS varchar(500)),\n    f.predicted_category = CAST(x.predicted_category AS varchar(30)),\n    f.predicted_sentiment = CAST(x.predicted_sentiment AS varchar(10)),\n    f.category_correct = CAST(x.is_match AS int),\n    f.updated_at = x.updated_at\nFROM gold.fact_rider_feedback f\nJOIN lh_silver.dbo.text_docs x ON x.doc_id = f.feedback_doc_id AND x.source = 'rider_feedback'\nWHERE x.updated_at > f.updated_at",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_feedback_update",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tasks_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.fact_rider_feedback\n    (feedback_doc_id, station_key, created_date_key, created_at, updated_at,\n     true_category, predicted_category, predicted_sentiment, category_correct, feedback_text)\nSELECT\n    CAST(x.doc_id AS varchar(30)),\n    COALESCE(ds.station_key, -1),\n    CAST(YEAR(x.created_at) * 10000 + MONTH(x.created_at) * 100 + DAY(x.created_at) AS int),\n    x.created_at, x.updated_at,\n    CAST(x.label_original AS varchar(30)),\n    CAST(x.predicted_category AS varchar(30)),\n    CAST(x.predicted_sentiment AS varchar(10)),\n    CAST(x.is_match AS int),\n    CAST(x.text AS varchar(500))\nFROM lh_silver.dbo.text_docs x\nLEFT JOIN gold.fact_rider_feedback f ON f.feedback_doc_id = x.doc_id\nLEFT JOIN gold.dim_station ds\n       ON ds.station_id = x.station_id AND ds.station_type = 'current'\n      AND x.created_at >= ds.valid_from AND x.created_at < ds.valid_to\nWHERE x.source = 'rider_feedback'\n  AND f.feedback_doc_id IS NULL",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_fact_feedback_insert",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_feedback_update",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "INSERT INTO gold.audit_runs (run_ts, check_name, result_value, expected_value, status)\nSELECT SYSDATETIME(), 'ops_tickets_gold_vs_silver',\n       (SELECT COUNT(*) FROM gold.fact_maintenance_tickets),\n       (SELECT COUNT(*) FROM lh_silver.dbo.maintenance_tickets),\n       CASE WHEN (SELECT COUNT(*) FROM gold.fact_maintenance_tickets)\n               = (SELECT COUNT(*) FROM lh_silver.dbo.maintenance_tickets) THEN 'PASS' ELSE 'FAIL' END\nUNION ALL\nSELECT SYSDATETIME(), 'ops_tasks_gold_vs_silver',\n       (SELECT COUNT(*) FROM gold.fact_rebalancing_tasks),\n       (SELECT COUNT(*) FROM lh_silver.dbo.rebalancing_tasks),\n       CASE WHEN (SELECT COUNT(*) FROM gold.fact_rebalancing_tasks)\n               = (SELECT COUNT(*) FROM lh_silver.dbo.rebalancing_tasks) THEN 'PASS' ELSE 'FAIL' END\nUNION ALL\nSELECT SYSDATETIME(), 'ops_feedback_gold_vs_silver',\n       (SELECT COUNT(*) FROM gold.fact_rider_feedback),\n       (SELECT COUNT(*) FROM lh_silver.dbo.text_docs WHERE source = 'rider_feedback'),\n       CASE WHEN (SELECT COUNT(*) FROM gold.fact_rider_feedback)\n               = (SELECT COUNT(*) FROM lh_silver.dbo.text_docs WHERE source = 'rider_feedback') THEN 'PASS' ELSE 'FAIL' END",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 60,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_audit_ops",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_feedback_insert",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

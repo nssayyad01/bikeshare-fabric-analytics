@@ -1,0 +1,142 @@
+table fact_rider_feedback
+	lineageTag: e9f16086-6bd0-497e-93be-fe7bdd67e789
+	sourceLineageTag: [gold].[fact_rider_feedback]
+
+	measure 'Total Feedback' = ```
+			DISTINCTCOUNT(fact_rider_feedback[feedback_doc_id]) 
+			```
+		formatString: 0
+		lineageTag: 9fc848e3-1a19-47aa-a884-ca06f719c1d8
+
+		changedProperty = Name
+
+	measure 'Negative Share %' =
+			
+			DIVIDE(
+			    CALCULATE(
+			        DISTINCTCOUNT(fact_rider_feedback[feedback_doc_id]),
+			        fact_rider_feedback[predicted_sentiment] = "negative"
+			    ),
+			    DISTINCTCOUNT(fact_rider_feedback[feedback_doc_id])
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 419518b7-974c-412c-ae26-05cca8250a4d
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	column feedback_doc_id
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: 638b5e26-a2a4-458b-a6cd-9e1580118fce
+		sourceLineageTag: feedback_doc_id
+		summarizeBy: none
+		sourceColumn: feedback_doc_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: b9e9fb0d-3d51-4592-8021-fa5147088ee6
+		sourceLineageTag: station_key
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d2eaf194-01d4-4923-9860-c3c5b4cefae9
+		sourceLineageTag: created_date_key
+		summarizeBy: none
+		sourceColumn: created_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column created_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 8a3a0243-b65d-405c-a2fb-98de7b3b1859
+		sourceLineageTag: created_at
+		summarizeBy: none
+		sourceColumn: created_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column updated_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 769f2bf4-9253-408a-8abd-d31695257575
+		sourceLineageTag: updated_at
+		summarizeBy: none
+		sourceColumn: updated_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column true_category
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: f037b885-65a3-4d24-8435-2107268a522f
+		sourceLineageTag: true_category
+		summarizeBy: none
+		sourceColumn: true_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column predicted_category
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: 7c0eeea1-7bf1-47ce-91fa-e641629e88ce
+		sourceLineageTag: predicted_category
+		summarizeBy: none
+		sourceColumn: predicted_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column predicted_sentiment
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 608713ff-dc69-4a44-9607-8b11cb05acee
+		sourceLineageTag: predicted_sentiment
+		summarizeBy: none
+		sourceColumn: predicted_sentiment
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_correct
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d70c4687-1f70-46b5-8757-bfa09ee53de8
+		sourceLineageTag: category_correct
+		summarizeBy: sum
+		sourceColumn: category_correct
+
+		annotation SummarizationSetBy = Automatic
+
+	column feedback_text
+		dataType: string
+		sourceProviderType: varchar(500)
+		lineageTag: 41f912be-0c5a-4346-ab0f-8f00731413e6
+		sourceLineageTag: feedback_text
+		summarizeBy: none
+		sourceColumn: feedback_text
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_rider_feedback = entity
+		mode: directLake
+		source
+			entityName: fact_rider_feedback
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
