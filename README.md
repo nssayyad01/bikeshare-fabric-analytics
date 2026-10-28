@@ -36,7 +36,7 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - [x] 5: Semantic model and Power BI (complete, with known items)
 - Direct Lake semantic model `sm_bikeshare` (8 tables, 15 relationships) with measures: Total Trips, Empty/Full Rate Now (Active), Empty/Full Active Stations Now, Open Tickets, Pending Tasks, Rain Drop %, Negative Share %.
 - Report `rpt_bikeshare`, 5 pages: Overview, Operations, Demand, Weather Impact, Rider Voice & Impact.
-- [~] 6: Orchestration and data quality done (two pipelines, hourly schedule, retries, audit table, Delta maintenance). Still open: CI/CD (Git integration, deployment pipelines), final documentation (data dictionary, architecture diagram).
+- [~] 6: Git integration done (GitHub, `fabric/` folder). Data dictionary and architecture diagram done. Optional: deployment pipelines (test/prod).
 
 ## Known limitations
 - Live station data covers 14 Oct 09:28 to 16 Oct 09:22 UTC and from 23 Oct 18:51 UTC onward, with one manual snapshot on 17 Oct in between. The ~6 day gap will not be recovered, because GBFS only provides current data.
@@ -45,12 +45,13 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - Weather impact uses Dec 2013 and Jan 2024 only (2024 is ~17 days). Rain/Snow may include snow. Compare within a year; pooled numbers are misleading. Correlation, not causation.
 - Tickets and rider feedback are simulated; classifier accuracy is not real-world.
 - `start_hour` assumes `started_at` is NYC local time (inferred from the hourly pattern, not confirmed against source docs).
-- Feedback UPDATE path has not been tested on real changed feedback (no feedback rows have changed yet).
+- Feedback UPDATE path was tested on one edited row only (feedback_59, test data).
 - The map visual shows a "being retired soon" warning.
 - Gold refresh is driven by pipelines now, but the Gold SQL lives in `sql/gold/` and in `gold_build.sql` section 19.
 - Independent portfolio project using public Citi Bike data. Not affiliated with Citi Bike or Lyft.
 
 ## Repo contents
+- `fabric/`: Fabric items (notebooks, pipelines, semantic model, report) are stored in the fabric/ folder and synced with Fabric Git integration.
 - `seed_stations.py`: loads real station list from the GBFS feed into Postgres (idempotent upsert)
 - `simulate_ops.py`: generates simulated maintenance tickets and rebalancing tasks (new and updated rows)
 - `simulate_feedback.py`: generates simulated rider feedback (runs once, guarded)
