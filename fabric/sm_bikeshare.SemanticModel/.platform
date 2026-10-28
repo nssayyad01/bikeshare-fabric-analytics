@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "sm_bikeshare"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "185540e8-6c07-858a-40ef-cd7d4a2fa135"
+  }
+}

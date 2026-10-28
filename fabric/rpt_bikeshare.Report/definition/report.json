@@ -1,0 +1,133 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "Fluent2-CY26SU10",
+      "reportVersionAtImport": {
+        "visual": "2.14.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "Bloom",
+      "reportVersionAtImport": {
+        "visual": "2.14.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
+      },
+      "type": "SharedResources"
+    }
+  },
+  "objects": {
+    "section": [
+      {
+        "properties": {
+          "verticalAlignment": {
+            "expr": {
+              "Literal": {
+                "Value": "'Top'"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "resourcePackages": [
+    {
+      "name": "SharedResources",
+      "type": "SharedResources",
+      "items": [
+        {
+          "name": "Bloom",
+          "path": "BaseThemes/Bloom.json",
+          "type": "BaseTheme"
+        },
+        {
+          "name": "Fluent2-CY26SU10",
+          "path": "BaseThemes/Fluent2-CY26SU10.json",
+          "type": "BaseTheme"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "analysis8378003773360176.png",
+          "path": "analysis8378003773360176.png",
+          "type": "Image"
+        },
+        {
+          "name": "atmospheric-conditions3338751882861418.png",
+          "path": "atmospheric-conditions3338751882861418.png",
+          "type": "Image"
+        },
+        {
+          "name": "atmospheric-conditions33799867568528263.png",
+          "path": "atmospheric-conditions33799867568528263.png",
+          "type": "Image"
+        },
+        {
+          "name": "cycle-path30748523712782094.png",
+          "path": "cycle-path30748523712782094.png",
+          "type": "Image"
+        },
+        {
+          "name": "efficacy23855700890875664.png",
+          "path": "efficacy23855700890875664.png",
+          "type": "Image"
+        },
+        {
+          "name": "efficacy8336959198500554.png",
+          "path": "efficacy8336959198500554.png",
+          "type": "Image"
+        },
+        {
+          "name": "good-feedback4254995423868163.png",
+          "path": "good-feedback4254995423868163.png",
+          "type": "Image"
+        },
+        {
+          "name": "good-feedback7684905898071533.png",
+          "path": "good-feedback7684905898071533.png",
+          "type": "Image"
+        },
+        {
+          "name": "need_(1)4695213518655633.png",
+          "path": "need_(1)4695213518655633.png",
+          "type": "Image"
+        },
+        {
+          "name": "need7704961163816277.png",
+          "path": "need7704961163816277.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "exportDataMode": "AllowSummarized",
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true,
+    "useDefaultAggregateDisplayName": true
+  }
+}

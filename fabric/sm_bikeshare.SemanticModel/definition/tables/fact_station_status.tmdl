@@ -1,0 +1,332 @@
+table fact_station_status
+	lineageTag: d1788320-90d7-4aab-a184-0639e8c00e94
+	sourceLineageTag: [gold].[fact_station_status]
+
+	measure 'Empty Rate' = DIVIDE(SUM(fact_station_status[is_empty]), COUNTROWS(fact_station_status))
+		lineageTag: acd075ae-60bf-4c79-92da-9c5502660d97
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Full Rate' = DIVIDE(SUM(fact_station_status[is_full]), COUNTROWS(fact_station_status))
+		lineageTag: defe26e8-0a43-451e-abb5-87bda04c3335
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Latest Snapshot' = CALCULATE(MAX(fact_station_status[snapshot_ts]), ALL(fact_station_status))
+		formatString: General Date
+		lineageTag: c2c3a884-e87f-45c8-bd4a-f6c1aa65611b
+
+		changedProperty = Name
+
+	measure 'Empty Stations Now' =
+			
+			VAR latest = [Latest Snapshot]
+			RETURN CALCULATE(SUM(fact_station_status[is_empty]), fact_station_status[snapshot_ts] = latest)
+		formatString: 0
+		lineageTag: dc91551d-75cd-4834-b162-32a6726cbe05
+
+		changedProperty = Name
+
+	measure 'Empty Active Stations Now' =
+			
+			VAR latest = [Latest Snapshot]
+			RETURN CALCULATE(
+			    SUM(fact_station_status[is_empty]),
+			    fact_station_status[snapshot_ts] = latest,
+			    fact_station_status[is_renting] = 1,
+			    fact_station_status[is_installed] = 1
+			)
+		formatString: 0
+		lineageTag: 95097cad-e03a-459b-aaf8-8b2684cca780
+
+		changedProperty = Name
+
+	measure 'Full Active Stations Now' =
+			
+			VAR latest = [Latest Snapshot]
+			RETURN CALCULATE(
+			    SUM(fact_station_status[is_full]),
+			    fact_station_status[snapshot_ts] = latest,
+			    fact_station_status[is_renting] = 1,
+			    fact_station_status[is_installed] = 1
+			)
+		formatString: 0
+		lineageTag: 727cb2be-fd8d-4c70-bb51-983a0a120822
+
+		changedProperty = Name
+
+	measure 'Empty Rate (Active)' =
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM(fact_station_status[is_empty]),
+			        fact_station_status[is_renting] = 1,
+			        fact_station_status[is_installed] = 1
+			    ),
+			    CALCULATE(
+			        COUNTROWS(fact_station_status),
+			        fact_station_status[is_renting] = 1,
+			        fact_station_status[is_installed] = 1
+			    )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 42cad647-c0e4-405a-8369-45acc8c748f9
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Full Rate (Active)' =
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM(fact_station_status[is_full]),
+			        fact_station_status[is_renting] = 1,
+			        fact_station_status[is_installed] = 1
+			    ),
+			    CALCULATE(
+			        COUNTROWS(fact_station_status),
+			        fact_station_status[is_renting] = 1,
+			        fact_station_status[is_installed] = 1
+			    )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 773d45ef-5511-4c6b-85b3-2b276977b2f1
+
+		changedProperty = Name
+
+		changedProperty = IsHidden
+
+		changedProperty = FormatString
+
+	measure 'Empty Rate Now (Active)' =
+			
+			VAR _latest = CALCULATE(MAX(fact_station_status[snapshot_ts]), ALL(fact_station_status))
+			VAR _active = CALCULATE(COUNTROWS(fact_station_status), fact_station_status[snapshot_ts] = _latest, fact_station_status[is_renting] = 1, fact_station_status[is_installed] = 1)
+			VAR _empty = CALCULATE(SUM(fact_station_status[is_empty]), fact_station_status[snapshot_ts] = _latest, fact_station_status[is_renting] = 1, fact_station_status[is_installed] = 1)
+			RETURN DIVIDE(_empty, _active)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 76db26da-59b1-424b-8782-da92e079a229
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Full Rate Now (Active)' =
+			
+			VAR _latest = CALCULATE(MAX(fact_station_status[snapshot_ts]), ALL(fact_station_status))
+			VAR _active = CALCULATE(COUNTROWS(fact_station_status), fact_station_status[snapshot_ts] = _latest, fact_station_status[is_renting] = 1, fact_station_status[is_installed] = 1)
+			VAR _full = CALCULATE(SUM(fact_station_status[is_full]), fact_station_status[snapshot_ts] = _latest, fact_station_status[is_renting] = 1, fact_station_status[is_installed] = 1)
+			RETURN DIVIDE(_full, _active)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 7781356a-8c27-4b6f-8653-ce58f9e539f2
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	measure 'Is Empty Active Now' =
+			
+			VAR _latest = CALCULATE(MAX(fact_station_status[snapshot_ts]), ALL(fact_station_status))
+			RETURN
+			CALCULATE(
+			    SUM(fact_station_status[is_empty]),
+			    fact_station_status[snapshot_ts] = _latest,
+			    fact_station_status[is_renting] = 1,
+			    fact_station_status[is_installed] = 1
+			)
+		formatString: 0
+		lineageTag: aa9fc07f-ea9d-4c3d-a009-0b8d61c52a75
+
+		changedProperty = Name
+
+	measure 'Empty Snapshots (Active)' =
+			
+			CALCULATE(
+			    SUM(fact_station_status[is_empty]),
+			    fact_station_status[is_renting] = 1,
+			    fact_station_status[is_installed] = 1
+			)
+		formatString: 0
+		lineageTag: 54611418-a4eb-4d0d-8c16-36fc3c2ca9f3
+
+		changedProperty = Name
+
+	column station_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 9dcf875a-2ad9-4e1a-8678-a57c2baaccfe
+		sourceLineageTag: station_key
+		summarizeBy: none
+		sourceColumn: station_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e3827590-9bd7-4b41-bc2b-5978ee20353e
+		sourceLineageTag: date_key
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column weather_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e31c28d0-f213-4fa4-8a99-539140e00a95
+		sourceLineageTag: weather_key
+		summarizeBy: none
+		sourceColumn: weather_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column snapshot_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9ecb61f9-4e6c-44e8-9b04-39bf8807a8ec
+		sourceLineageTag: snapshot_ts
+		summarizeBy: none
+		sourceColumn: snapshot_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column snapshot_ts_local
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9ab08e7b-367b-4cfa-8a8e-4101045b2022
+		sourceLineageTag: snapshot_ts_local
+		summarizeBy: none
+		sourceColumn: snapshot_ts_local
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_bikes_available
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4d15f17e-8ac5-4aa4-8633-acb15e97e40a
+		sourceLineageTag: num_bikes_available
+		summarizeBy: sum
+		sourceColumn: num_bikes_available
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_ebikes_available
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f9ee39b4-f15c-4433-8ddf-8ef1e4b28af5
+		sourceLineageTag: num_ebikes_available
+		summarizeBy: sum
+		sourceColumn: num_ebikes_available
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_bikes_disabled
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 7bcdd56e-87ef-4c3d-be53-9fe2744851e3
+		sourceLineageTag: num_bikes_disabled
+		summarizeBy: sum
+		sourceColumn: num_bikes_disabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_docks_available
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ff859cf0-6d6f-4025-902b-21243163dc1d
+		sourceLineageTag: num_docks_available
+		summarizeBy: sum
+		sourceColumn: num_docks_available
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_docks_disabled
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 6b1ee023-3c4f-463a-a6f7-11a7df7055c4
+		sourceLineageTag: num_docks_disabled
+		summarizeBy: sum
+		sourceColumn: num_docks_disabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_installed
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: a0c5939b-7b76-473b-a44d-338706d80cb4
+		sourceLineageTag: is_installed
+		summarizeBy: sum
+		sourceColumn: is_installed
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_renting
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 83f8815b-c660-40d0-9d6c-2e82d6940813
+		sourceLineageTag: is_renting
+		summarizeBy: sum
+		sourceColumn: is_renting
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_returning
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: c0f8eae5-d27a-4bf0-94c9-96e84bc8f8d8
+		sourceLineageTag: is_returning
+		summarizeBy: sum
+		sourceColumn: is_returning
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_empty
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: bfa6b319-772a-425b-b329-abce13066119
+		sourceLineageTag: is_empty
+		summarizeBy: sum
+		sourceColumn: is_empty
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_full
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: fbd9dbf2-199a-47dd-a9e8-435c2db96a84
+		sourceLineageTag: is_full
+		summarizeBy: sum
+		sourceColumn: is_full
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_station_status = entity
+		mode: directLake
+		source
+			entityName: fact_station_status
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,113 @@
+table dim_weather
+	lineageTag: b0a5b1df-02de-4861-9b4b-4ae4bc36b2cc
+	sourceLineageTag: [gold].[dim_weather]
+
+	column weather_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 72abd5c2-2382-43bc-ad60-88bc6ae90118
+		sourceLineageTag: weather_key
+		summarizeBy: none
+		sourceColumn: weather_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_ts_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 7020ce8d-0c6a-464c-8b86-a5018d94e737
+		sourceLineageTag: hour_ts_utc
+		summarizeBy: none
+		sourceColumn: hour_ts_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_ts_local
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 5ad5f371-b7f3-4d30-aa87-4ad4831d8c08
+		sourceLineageTag: hour_ts_local
+		summarizeBy: none
+		sourceColumn: hour_ts_local
+
+		annotation SummarizationSetBy = Automatic
+
+	column temperature_c
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 59d12cf0-f8ec-4bc5-8993-e6d7aeeab582
+		sourceLineageTag: temperature_c
+		summarizeBy: sum
+		sourceColumn: temperature_c
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column precipitation_mm
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 6e42a84f-7650-409b-90ef-20447094b251
+		sourceLineageTag: precipitation_mm
+		summarizeBy: sum
+		sourceColumn: precipitation_mm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column wind_speed_kmh
+		dataType: double
+		sourceProviderType: float
+		lineageTag: be496731-0813-40b0-86d4-f75e527e4567
+		sourceLineageTag: wind_speed_kmh
+		summarizeBy: sum
+		sourceColumn: wind_speed_kmh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column is_raining
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4efdd3ad-eb8a-4467-9dcd-162788bfec95
+		sourceLineageTag: is_raining
+		summarizeBy: sum
+		sourceColumn: is_raining
+
+		annotation SummarizationSetBy = Automatic
+
+	column source
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 4dd935ef-564e-4319-bc13-da5548ebebc0
+		sourceLineageTag: source
+		summarizeBy: none
+		sourceColumn: source
+
+		annotation SummarizationSetBy = Automatic
+
+	column weather_label
+		dataType: string
+		sourceProviderType: varchar(12)
+		lineageTag: 0f4a1aae-3364-4a96-a420-c1759a1eda52
+		sourceLineageTag: weather_label
+		summarizeBy: none
+		sourceColumn: weather_label
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_weather = entity
+		mode: directLake
+		source
+			entityName: dim_weather
+			schemaName: gold
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

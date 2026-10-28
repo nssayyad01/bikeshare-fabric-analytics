@@ -1,0 +1,168 @@
+{
+  "properties": {
+    "jobMode": "CDC",
+    "fullLoadBehavior": "Truncate",
+    "source": {
+      "type": "PostgreSqlTable",
+      "connectionSettings": {
+        "type": "PostgreSql",
+        "externalReferences": {
+          "connection": "d9b79740-f0cc-40b1-87bd-09c4ef5f5298"
+        }
+      }
+    },
+    "destination": {
+      "type": "LakehouseTable",
+      "connectionSettings": {
+        "type": "Lakehouse",
+        "typeProperties": {
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "artifactId": "8198d308-9e73-b17b-407d-6c2a5ea67565",
+          "rootFolder": "Tables"
+        }
+      }
+    },
+    "policy": {
+      "timeout": "0.12:00:00",
+      "retry": 0
+    }
+  },
+  "activities": [
+    {
+      "id": "4735ad71-62b2-4f55-b3dc-aa7c2ec8ca48",
+      "properties": {
+        "source": {
+          "datasetSettings": {
+            "schema": "public",
+            "table": "rider_feedback"
+          },
+          "changeDataSettings": {
+            "readMethod": "SnapshotPlusIncremental",
+            "columns": [
+              {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              }
+            ],
+            "nullWatermarkBehavior": "Skip"
+          }
+        },
+        "destination": {
+          "upsertSettings": {
+            "keys": [
+              "feedback_id"
+            ]
+          },
+          "writeBehavior": "Upsert",
+          "datasetSettings": {
+            "schema": "public",
+            "table": "rider_feedback"
+          },
+          "applyVOrder": false,
+          "enableTimestampNtz": false
+        },
+        "enableStaging": false,
+        "translator": {
+          "type": "TabularTranslator",
+          "mappings": [
+            {
+              "source": {
+                "name": "feedback_id",
+                "type": "Int32",
+                "physicalType": "integer"
+              },
+              "destination": {
+                "name": "feedback_id",
+                "physicalType": "integer"
+              }
+            },
+            {
+              "source": {
+                "name": "station_id",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "station_id",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "rider_type",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "rider_type",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "feedback_text",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "feedback_text",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "true_category",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "true_category",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "true_sentiment",
+                "type": "String",
+                "physicalType": "text"
+              },
+              "destination": {
+                "name": "true_sentiment",
+                "physicalType": "string"
+              }
+            },
+            {
+              "source": {
+                "name": "created_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "created_at",
+                "physicalType": "timestamp"
+              }
+            },
+            {
+              "source": {
+                "name": "updated_at",
+                "type": "DateTime",
+                "physicalType": "timestamp with time zone"
+              },
+              "destination": {
+                "name": "updated_at",
+                "physicalType": "timestamp"
+              }
+            }
+          ]
+        },
+        "typeConversionSettings": {
+          "typeConversion": {
+            "allowDataTruncation": true,
+            "treatBooleanAsNumber": false
+          }
+        }
+      }
+    }
+  ]
+}

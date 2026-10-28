@@ -1,0 +1,63 @@
+relationship b7fba300-76d3-ea30-5399-c7d9658a4c61
+	fromColumn: fact_trips.date_key
+	toColumn: dim_date.date_key
+
+relationship 515c2bca-832b-04de-db58-2caa8a308e4c
+	fromColumn: fact_trips.start_station_key
+	toColumn: dim_station.station_key
+
+relationship 965596bb-1109-539e-5536-fcd2d2ce4650
+	isActive: false
+	fromColumn: fact_trips.end_station_key
+	toColumn: dim_station.station_key
+
+relationship 751fc0dd-f0cc-77fc-3456-0bb121d7325c
+	fromColumn: fact_trips.weather_key
+	toColumn: dim_weather.weather_key
+
+relationship 29bd3616-1ca8-47fd-4452-208561f03eb8
+	fromColumn: fact_station_status.date_key
+	toColumn: dim_date.date_key
+
+relationship ba82e89e-e0e0-eded-562e-5633a20bbb89
+	fromColumn: fact_station_status.station_key
+	toColumn: dim_station.station_key
+
+relationship 2deea2d2-b924-9883-4f9c-fa8a46851143
+	fromColumn: fact_station_status.weather_key
+	toColumn: dim_weather.weather_key
+
+relationship 4099f88b-9241-466b-a596-5c322fcd16da
+	fromColumn: fact_maintenance_tickets.created_date_key
+	toColumn: dim_date.date_key
+
+relationship 6c6e9a02-1a84-79c5-b762-ad7276840e74
+	fromColumn: fact_maintenance_tickets.station_key
+	toColumn: dim_station.station_key
+
+relationship 5afdbaac-86f4-2222-14c7-1c33cc964dd3
+	fromColumn: fact_rebalancing_tasks.assigned_date_key
+	toColumn: dim_date.date_key
+
+relationship 0cf9e3f2-107e-64a3-a376-f7cb9c4bac54
+	isActive: false
+	fromColumn: fact_rebalancing_tasks.completed_date_key
+	toColumn: dim_date.date_key
+
+relationship 06e19cf0-11c8-22de-efcb-ae9237798b44
+	fromColumn: fact_rebalancing_tasks.from_station_key
+	toColumn: dim_station.station_key
+
+relationship af54df9c-b00a-f3e7-8eb2-9b1edf525b14
+	isActive: false
+	fromColumn: fact_rebalancing_tasks.to_station_key
+	toColumn: dim_station.station_key
+
+relationship bcc063a8-a256-6b87-0f54-35ca91b497f2
+	fromColumn: fact_rider_feedback.created_date_key
+	toColumn: dim_date.date_key
+
+relationship 1035c3b0-cff3-2208-86de-44c7457c63ff
+	fromColumn: fact_rider_feedback.station_key
+	toColumn: dim_station.station_key
+

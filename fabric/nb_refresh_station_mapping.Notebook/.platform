@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_refresh_station_mapping"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6e0cbce4-c5dd-8bee-44b1-eaf0928bb6e4"
+  }
+}
