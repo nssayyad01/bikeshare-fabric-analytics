@@ -8,13 +8,25 @@ Bike stations often run empty or full. This project helps operations managers de
 ## Data sources
 - Structured: historical Citi Bike trip CSVs (2013 and 2024 schemas), PostgreSQL operational tables (stations, maintenance tickets, rebalancing tasks; simulated with Python + Faker)
 - Semi-structured: GBFS live station status (JSON, every 15 min), Open-Meteo weather (JSON, hourly)
-- Unstructured (planned): technician notes, rider feedback, city reports
+- Unstructured: technician notes and rider feedback (simulated text, rule-based classifier). City PDF reports are optional and not yet built.
 
 ## Architecture (medallion)
-Sources -> Data Factory pipelines -> Bronze (Lakehouse, raw) -> Silver (PySpark, cleaned) -> Gold (Warehouse, star schema) -> Semantic model (Direct Lake) -> Power BI
+Neon Postgres -> Copy job (CopyJob_1) -> Bronze (lh_bronze) -> Silver (lh_silver, PySpark notebooks) -> Gold (wh_gold, star schema) -> Semantic model (sm_bikeshare, Direct Lake) -> Power BI report (rpt_bikeshare)
 
-## Tech stack
-Microsoft Fabric (Data Factory, OneLake, Lakehouse, Warehouse, Notebooks, Power BI), PostgreSQL (Neon), Python, SQL, Git
+GBFS and weather are ingested by their own pipelines (pl_ingest_gbfs every 15 min, pl_ingest_weather hourly).
+
+## Pipelines
+- **pl_refresh_master** (hourly, scheduled): `nb_refresh_gbfs` -> `nb_refresh_weather` -> Gold daily refresh (dim_date, day_sort, dim_weather, dim_station SCD2 close and open, fact_station_status) -> Gold audit checks.
+- **pl_sync_operations** (manual, run only after `simulate_ops.py` or `simulate_feedback.py`): `copy_neon_to_bronze` -> `nb_refresh_station_mapping` -> Gold ops refresh (tickets, tasks, feedback: UPDATE then INSERT) -> ops audit.
+
+Both pipelines share the trial capacity, so do not run them together, and do not run notebooks manually while `pl_refresh_master` is running. Capacity errors (HTTP 430) are handled by retries.
+
+## Data quality and audit
+- Table `gold.audit_runs` logs each check per run: unknown station rows, orphan date keys, duplicate fact keys, freshness (Gold vs Silver snapshot), and Gold vs Silver counts for tickets, tasks and feedback.
+- Checks currently log PASS/WARN/FAIL only; they do not stop the pipeline. A fail-the-pipeline rule is planned once thresholds are settled.
+
+## Maintenance
+- Delta OPTIMIZE and VACUUM (retain 7 days) run on the large Silver tables (`gbfs_station_status`, `weather_hourly`, `trips`) from the notebook `nb_maintenance_delta`. Run it manually about once a week, not inside a pipeline.
 
 ## Status
 - [x] 1: Postgres setup, idempotent station seed script, Faker simulator
@@ -24,21 +36,26 @@ Microsoft Fabric (Data Factory, OneLake, Lakehouse, Warehouse, Notebooks, Power 
 - [x] 5: Semantic model and Power BI (complete, with known items)
 - Direct Lake semantic model `sm_bikeshare` (8 tables, 15 relationships) with measures: Total Trips, Empty/Full Rate Now (Active), Empty/Full Active Stations Now, Open Tickets, Pending Tasks, Rain Drop %, Negative Share %.
 - Report `rpt_bikeshare`, 5 pages: Overview, Operations, Demand, Weather Impact, Rider Voice & Impact.
-- Added `start_hour` to `gold.fact_trips` (see gold_build.sql section 16) for the hour-of-day chart.
+- [~] 6: Orchestration and data quality done (two pipelines, hourly schedule, retries, audit table, Delta maintenance). Still open: CI/CD (Git integration, deployment pipelines), final documentation (data dictionary, architecture diagram).
 
-**Known limitations**
-- Live GBFS/weather ingestion stopped on 16-17 Oct 2026 (schedule end date passed), so "Now" metrics refer to the 17 Oct 10:54 UTC snapshot, and the Operations line chart shows a flat gap. It fills once schedules are re-enabled (Week 6).
+## Known limitations
+- Live station data covers 14 Oct 09:28 to 16 Oct 09:22 UTC and from 23 Oct 18:51 UTC onward, with one manual snapshot on 17 Oct in between. The ~6 day gap will not be recovered, because GBFS only provides current data.
+- One GBFS station (`2278012504182672958`) is not in the Neon stations table. Its snapshots map to the Unknown station key (-1), so the Unknown count keeps growing by about 4 per hour.
+- Station `valid_from` (SCD2) is the time our Silver load picked up a change (Neon `updated_at`), not the actual time the capacity changed in the real world.
 - Weather impact uses Dec 2013 and Jan 2024 only (2024 is ~17 days). Rain/Snow may include snow. Compare within a year; pooled numbers are misleading. Correlation, not causation.
 - Tickets and rider feedback are simulated; classifier accuracy is not real-world.
 - `start_hour` assumes `started_at` is NYC local time (inferred from the hourly pattern, not confirmed against source docs).
+- Feedback UPDATE path has not been tested on real changed feedback (no feedback rows have changed yet).
 - The map visual shows a "being retired soon" warning.
+- Gold refresh is driven by pipelines now, but the Gold SQL lives in `sql/gold/` and in `gold_build.sql` section 19.
 - Independent portfolio project using public Citi Bike data. Not affiliated with Citi Bike or Lyft.
-- [ ] 6: Orchestration, data quality, CI/CD, documentation
 
 ## Repo contents
 - `seed_stations.py`: loads real station list from the GBFS feed into Postgres (idempotent upsert)
-- `simulate_ops.py`: generates simulated maintenance tickets and rebalancing tasks
+- `simulate_ops.py`: generates simulated maintenance tickets and rebalancing tasks (new and updated rows)
+- `simulate_feedback.py`: generates simulated rider feedback (runs once, guarded)
 - `test_connection.py`: checks the database connection
+- `gold_build.sql`: Gold layer record. Sections 01-16 are the one-time build, 17-18 are applied fixes, 19 is the refresh SQL used by the pipelines. Do not run the file top to bottom.
 
 ## Setup
 Create a `.env` file with `DATABASE_URL` (never commit it), then `pip install faker psycopg2-binary python-dotenv`.
