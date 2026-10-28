@@ -15,6 +15,8 @@ Neon Postgres -> Copy job (CopyJob_1) -> Bronze (lh_bronze) -> Silver (lh_silver
 
 GBFS and weather are ingested by their own pipelines (pl_ingest_gbfs every 15 min, pl_ingest_weather hourly).
 
+Detailed docs: [Architecture diagram](docs/architecture.md) and [Data dictionary](docs/data_dictionary.md).
+
 ## Pipelines
 - **pl_refresh_master** (hourly, scheduled): `nb_refresh_gbfs` -> `nb_refresh_weather` -> Gold daily refresh (dim_date, day_sort, dim_weather, dim_station SCD2 close and open, fact_station_status) -> Gold audit checks.
 - **pl_sync_operations** (manual, run only after `simulate_ops.py` or `simulate_feedback.py`): `copy_neon_to_bronze` -> `nb_refresh_station_mapping` -> Gold ops refresh (tickets, tasks, feedback: UPDATE then INSERT) -> ops audit.
@@ -36,7 +38,7 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - [x] 5: Semantic model and Power BI (complete, with known items)
 - Direct Lake semantic model `sm_bikeshare` (8 tables, 15 relationships) with measures: Total Trips, Empty/Full Rate Now (Active), Empty/Full Active Stations Now, Open Tickets, Pending Tasks, Rain Drop %, Negative Share %.
 - Report `rpt_bikeshare`, 5 pages: Overview, Operations, Demand, Weather Impact, Rider Voice & Impact.
-- [~] 6: Git integration done (GitHub, `fabric/` folder). Data dictionary and architecture diagram done. Optional: deployment pipelines (test/prod).
+- [x] 6: Git integration done (GitHub, `fabric/` folder). Data dictionary and architecture diagram done. Optional: deployment pipelines (test/prod).
 
 ## Known limitations
 - Live station data covers 14 Oct 09:28 to 16 Oct 09:22 UTC and from 23 Oct 18:51 UTC onward, with one manual snapshot on 17 Oct in between. The ~6 day gap will not be recovered, because GBFS only provides current data.
@@ -56,7 +58,7 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - `simulate_ops.py`: generates simulated maintenance tickets and rebalancing tasks (new and updated rows)
 - `simulate_feedback.py`: generates simulated rider feedback (runs once, guarded)
 - `test_connection.py`: checks the database connection
-- `gold_build.sql`: Gold layer record. Sections 01-16 are the one-time build, 17-18 are applied fixes, 19 is the refresh SQL used by the pipelines. Do not run the file top to bottom.
+- `sql/gold/gold_build.sql`: Gold layer record. Sections 01-16 are the one-time build, 17-18 are applied fixes, 19 is the refresh SQL used by the pipelines. Do not run the file top to bottom.
 
 ## Setup
 Create a `.env` file with `DATABASE_URL` (never commit it), then `pip install faker psycopg2-binary python-dotenv`.
