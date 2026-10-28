@@ -45,13 +45,13 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - Weather impact uses Dec 2013 and Jan 2024 only (2024 is ~17 days). Rain/Snow may include snow. Compare within a year; pooled numbers are misleading. Correlation, not causation.
 - Tickets and rider feedback are simulated; classifier accuracy is not real-world.
 - `start_hour` assumes `started_at` is NYC local time (inferred from the hourly pattern, not confirmed against source docs).
-- Feedback UPDATE path was tested on one edited row only (feedback_59, test data).
+- Feedback UPDATE path tested on one row (feedback_59) that was edited and then restored to its original text.
 - The map visual shows a "being retired soon" warning.
 - Gold refresh is driven by pipelines now, but the Gold SQL lives in `sql/gold/` and in `gold_build.sql` section 19.
 - Independent portfolio project using public Citi Bike data. Not affiliated with Citi Bike or Lyft.
 
 ## Repo contents
-- `fabric/`: Fabric items (notebooks, pipelines, semantic model, report) are stored in the fabric/ folder and synced with Fabric Git integration.
+- `fabric/`: Fabric item definitions (notebooks, pipelines, copy jobs, lakehouses, warehouse, semantic model, report), synced by Fabric Git integration from the fabric-sync branch and merged into main. Git stores definitions only, no data.
 - `seed_stations.py`: loads real station list from the GBFS feed into Postgres (idempotent upsert)
 - `simulate_ops.py`: generates simulated maintenance tickets and rebalancing tasks (new and updated rows)
 - `simulate_feedback.py`: generates simulated rider feedback (runs once, guarded)
