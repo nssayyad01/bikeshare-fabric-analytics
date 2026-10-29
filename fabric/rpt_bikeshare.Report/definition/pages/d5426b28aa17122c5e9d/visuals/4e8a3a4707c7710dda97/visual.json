@@ -90,8 +90,8 @@
                 "color": {
                   "expr": {
                     "ThemeDataColor": {
-                      "ColorId": 7,
-                      "Percent": -0.25
+                      "ColorId": 3,
+                      "Percent": -0.5
                     }
                   }
                 }
@@ -100,7 +100,7 @@
             "backgroundTransparency": {
               "expr": {
                 "Literal": {
-                  "Value": "15D"
+                  "Value": "0D"
                 }
               }
             },

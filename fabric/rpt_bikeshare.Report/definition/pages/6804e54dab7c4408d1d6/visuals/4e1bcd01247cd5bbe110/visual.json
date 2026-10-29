@@ -2,8 +2,8 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "4e1bcd01247cd5bbe110",
   "position": {
-    "x": 418.22616547010693,
-    "y": 0,
+    "x": 953.499075148133,
+    "y": 702.09988400163024,
     "z": 5000,
     "height": 156.02219644480672,
     "width": 431.22801517384084,
@@ -55,20 +55,6 @@
       "border": [
         {
           "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "width": {
-              "expr": {
-                "Literal": {
-                  "Value": "4D"
-                }
-              }
-            },
             "transparency": {
               "expr": {
                 "Literal": {
@@ -80,6 +66,35 @@
           "selector": {
             "id": "default"
           }
+        },
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E6E6E6'"
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
         }
       ],
       "layout": [
@@ -90,8 +105,8 @@
                 "color": {
                   "expr": {
                     "ThemeDataColor": {
-                      "ColorId": 7,
-                      "Percent": -0.25
+                      "ColorId": 3,
+                      "Percent": -0.5
                     }
                   }
                 }
@@ -100,7 +115,7 @@
             "backgroundTransparency": {
               "expr": {
                 "Literal": {
-                  "Value": "15D"
+                  "Value": "0D"
                 }
               }
             },
@@ -379,7 +394,7 @@
             "verticalSpacing": {
               "expr": {
                 "Literal": {
-                  "Value": "3L"
+                  "Value": "2D"
                 }
               }
             }
@@ -387,6 +402,9 @@
           "selector": {
             "id": "default"
           }
+        },
+        {
+          "properties": {}
         }
       ],
       "image": [
@@ -411,10 +429,21 @@
             "id": "default"
           }
         }
+      ],
+      "padding": [
+        {
+          "properties": {}
+        }
       ]
     },
     "visualContainerObjects": {
       "border": [
+        {
+          "properties": {},
+          "selector": {
+            "id": "default"
+          }
+        },
         {
           "properties": {
             "show": {
@@ -674,33 +703,8 @@
             }
           }
         }
-      ],
-      "visualHeader": [
-        {
-          "properties": {
-            "transparency": {
-              "expr": {
-                "Literal": {
-                  "Value": "3D"
-                }
-              }
-            },
-            "foreground": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8250C4'"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "parentGroupName": "44d69a9004ce0740755e"
+  }
 }
