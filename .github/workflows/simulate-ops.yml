@@ -1,0 +1,30 @@
+name: simulate-ops
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 08:30 IST
+    - cron: "0 15 * * *"  # 20:30 IST
+  workflow_dispatch:
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ops simulator
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python simulate_ops.py
