@@ -17,7 +17,7 @@ lang = data.get("en") or next(iter(data.values()))
 feeds = {f["name"]: f["url"] for f in lang["feeds"]}
 raw = get_json(feeds["station_information"])["data"]["stations"]
 
-# duplicate station_id ek hi batch mein na ho, isliye dict
+
 rows = {}
 for s in raw:
     rows[s["station_id"]] = (
