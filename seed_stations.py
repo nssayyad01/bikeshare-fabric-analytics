@@ -1,9 +1,10 @@
-import os
 import json
+import os
 import urllib.request
+
 import psycopg2
-from psycopg2.extras import execute_values
 from dotenv import load_dotenv
+from psycopg2.extras import execute_values
 
 DISCOVERY_URL = "https://gbfs.citibikenyc.com/gbfs/gbfs.json"
 

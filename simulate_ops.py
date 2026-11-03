@@ -1,8 +1,9 @@
 import os
 import random
+
 import psycopg2
-from faker import Faker
 from dotenv import load_dotenv
+from faker import Faker
 
 load_dotenv()
 fake = Faker()
