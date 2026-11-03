@@ -163,7 +163,7 @@ spark.table("lh_silver.dbo.station_map") \
     .select("source_schema", "trip_station_id", "trip_station_name",
             "trip_mentions", "station_id", "match_status") \
 
-    .show(truncate=False)
+.show(truncate=False)
 
 # METADATA ********************
 
