@@ -7,7 +7,7 @@
     "z": 3000,
     "height": 139.53488372093022,
     "width": 809.30232558139539,
-    "tabOrder": 15000
+    "tabOrder": 13000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -97,8 +97,8 @@
                 "color": {
                   "expr": {
                     "ThemeDataColor": {
-                      "ColorId": 7,
-                      "Percent": -0.25
+                      "ColorId": 3,
+                      "Percent": -0.5
                     }
                   }
                 }
