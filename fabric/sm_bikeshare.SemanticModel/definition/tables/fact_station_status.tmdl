@@ -2,20 +2,6 @@ table fact_station_status
 	lineageTag: d1788320-90d7-4aab-a184-0639e8c00e94
 	sourceLineageTag: [gold].[fact_station_status]
 
-	measure 'Empty Rate' = DIVIDE(SUM(fact_station_status[is_empty]), COUNTROWS(fact_station_status))
-		lineageTag: acd075ae-60bf-4c79-92da-9c5502660d97
-
-		changedProperty = Name
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
-	measure 'Full Rate' = DIVIDE(SUM(fact_station_status[is_full]), COUNTROWS(fact_station_status))
-		lineageTag: defe26e8-0a43-451e-abb5-87bda04c3335
-
-		changedProperty = Name
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	measure 'Latest Snapshot' = CALCULATE(MAX(fact_station_status[snapshot_ts]), ALL(fact_station_status))
 		formatString: General Date
 		lineageTag: c2c3a884-e87f-45c8-bd4a-f6c1aa65611b
