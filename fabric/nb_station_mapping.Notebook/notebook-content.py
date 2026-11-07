@@ -162,8 +162,7 @@ spark.table("lh_silver.dbo.station_map") \
     .where(F.lower(F.trim("trip_station_name")) == "clinton st & grand st") \
     .select("source_schema", "trip_station_id", "trip_station_name",
             "trip_mentions", "station_id", "match_status") \
-
-.show(truncate=False)
+    .show(truncate=False)
 
 # METADATA ********************
 
@@ -200,10 +199,7 @@ spark.sql("""
                  sum(sum(trip_mentions)) OVER (PARTITION BY source_schema), 1) AS pct_of_mentions
     FROM lh_silver.dbo.station_map
     GROUP BY source_schema, match_status
-    ORDER BY 1, 2
-""").show()
-
-
+    ORDER BY 1, 2""").show()
 
 # METADATA ********************
 
