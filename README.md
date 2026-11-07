@@ -50,8 +50,8 @@ Both pipelines share the trial capacity, so do not run them together, and do not
   - Direct Lake semantic model `sm_bikeshare` (8 tables, 15 relationships) with measures: Total Trips, Empty/Full Rate Now (Active), Empty/Full Active Stations Now, Open Tickets, Pending Tasks, Rain Drop %, Negative Share %.
   - Report `rpt_bikeshare`, 5 pages: Overview, Operations, Demand, Weather Impact, Rider Voice & Impact.
 - [x] 6: Git integration done (GitHub, `fabric/` folder). Data dictionary and architecture diagram done. Optional: deployment pipelines (test/prod).
-- [x] 7: Automation: simulator on GitHub Actions and daily sync schedule (built 29 Oct 2026, verification pending)
-- [ ] 8: CI: lint and compile check on pull requests (not started)
+- [x] 7: Automation: simulator on GitHub Actions and daily sync schedule (verified 30 Oct 2026)
+- [x] 8: CI: ruff lint and compile check on pull requests (merged 3 Nov 2026)
 
 ## Known limitations
 
@@ -76,6 +76,8 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 - `test_connection.py`: checks the database connection
 - `requirements.txt`: Python dependencies (psycopg2-binary, Faker, python-dotenv)
 - `sql/gold/gold_build.sql`: Gold layer record. Sections 01-16 are the one-time build, 17-18 are applied fixes, 19 is the refresh SQL used by the pipelines. Do not run the file top to bottom.
+- `.github/workflows/ci.yml`: lint and compile check on pull requests and pushes to main
+- `pyproject.toml`: ruff config (excludes fabric/ notebooks, which are auto-generated)
 
 ## Setup
 
