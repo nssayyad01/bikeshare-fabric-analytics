@@ -346,6 +346,49 @@
             ]
           }
         ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "IF EXISTS (\n    SELECT 1 FROM gold.audit_runs\n    WHERE run_ts >= DATEADD(MINUTE, -10, SYSDATETIME())\n      AND check_name IN ('ops_tickets_gold_vs_silver', 'ops_tasks_gold_vs_silver', 'ops_feedback_gold_vs_silver')\n      AND status = 'FAIL'\n)\n    THROW 50001, 'Audit FAIL: Gold does not match Silver', 1",
+                "type": "Expression"
+              },
+              "type": "NonQuery"
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "wh_gold",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "a77a085e-85a4-8769-49fa-bd344cfe9cea",
+              "endpoint": "3bt23b6qirlevflaf3lvwbl3xa-ejuddtjhlpfuxndvj2qz44joji.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "gold_audit_gate",
+        "dependsOn": [
+          {
+            "activity": "gold_audit_ops",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       }
     ]
   }

@@ -597,7 +597,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Empty vs Full Stations Over Time (Active Stations, 14-16 Oct 2026)'"
+                  "Value": "'Empty vs Full Stations Over Time (Active Stations)'"
                 }
               }
             },
