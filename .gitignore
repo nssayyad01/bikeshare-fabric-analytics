@@ -221,3 +221,4 @@ __marimo__/
 .ruff_cache/
 rag/reports/
 rag/chunks.json
+rag/embeddings.json
