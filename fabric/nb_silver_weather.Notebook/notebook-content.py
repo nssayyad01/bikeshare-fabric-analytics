@@ -23,6 +23,10 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# Build Cell (Backfil)
+
 # CELL ********************
 
 from pyspark.sql import functions as F
@@ -48,6 +52,10 @@ wraw.select(
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# MARKDOWN ********************
+
+# Build Cell (History Backfill)
 
 # CELL ********************
 

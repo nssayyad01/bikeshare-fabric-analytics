@@ -44,6 +44,10 @@ raw.select("last_updated", "ttl", "version", "source_file").show(5, truncate=Fal
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# First Build (Overwrite)
+
 # CELL ********************
 
 from pyspark.sql import functions as F
@@ -96,6 +100,10 @@ spark.sql("""
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# MARKDOWN ********************
+
+# Incremental Append
 
 # CELL ********************
 
