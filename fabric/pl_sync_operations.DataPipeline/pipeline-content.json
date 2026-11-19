@@ -82,7 +82,7 @@
         "name": "gold_fact_tickets_update",
         "dependsOn": [
           {
-            "activity": "nb_refresh_station_mapping",
+            "activity": "Wait1",
             "dependencyConditions": [
               "Succeeded"
             ]
@@ -117,15 +117,15 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 1,
-          "retryIntervalInSeconds": 60,
+          "retry": 2,
+          "retryIntervalInSeconds": 300,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "gold_fact_tickets_insert",
         "dependsOn": [
           {
-            "activity": "gold_fact_tickets_update",
+            "activity": "Wait2",
             "dependencyConditions": [
               "Succeeded"
             ]
@@ -203,15 +203,15 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 1,
-          "retryIntervalInSeconds": 60,
+          "retry": 2,
+          "retryIntervalInSeconds": 300,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "gold_fact_tasks_insert",
         "dependsOn": [
           {
-            "activity": "gold_fact_tasks_update",
+            "activity": "Wait3",
             "dependencyConditions": [
               "Succeeded"
             ]
@@ -384,6 +384,51 @@
         "dependsOn": [
           {
             "activity": "gold_audit_ops",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "typeProperties": {
+          "waitTimeInSeconds": 300
+        },
+        "name": "Wait1",
+        "dependsOn": [
+          {
+            "activity": "nb_refresh_station_mapping",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "typeProperties": {
+          "waitTimeInSeconds": 300
+        },
+        "name": "Wait2",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tickets_update",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Wait",
+        "typeProperties": {
+          "waitTimeInSeconds": 300
+        },
+        "name": "Wait3",
+        "dependsOn": [
+          {
+            "activity": "gold_fact_tasks_update",
             "dependencyConditions": [
               "Succeeded"
             ]
