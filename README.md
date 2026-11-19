@@ -31,6 +31,21 @@ Both pipelines share the trial capacity, so do not run them together, and do not
 
 `simulate_ops.py` runs on GitHub Actions (`.github/workflows/simulate-ops.yml`) at 08:30 and 20:30 IST, and can be started manually from the Actions tab. The Neon connection string is stored as the `DATABASE_URL` GitHub Secret. It must be a plain `postgresql://...?sslmode=require` string, without `channel_binding`.
 
+## Add-on: RAG prototype (local)
+
+A small retrieval layer added after the core project. It runs on the laptop, not in Fabric, and does not use Fabric capacity.
+
+- `rag/make_reports.py`: builds a PDF summary from the Neon operational tables (simulated data).
+- `rag/extract_text.py` and `rag/chunk_text.py`: extract text from the PDF and split it into overlapping chunks.
+- `rag/embed_chunks.py`: embeds chunks with `sentence-transformers` (all-MiniLM-L6-v2, 384 dimensions).
+- `rag/search.py`: takes a question, returns the most similar chunks by cosine similarity.
+
+Current scope: one short PDF, one chunk. Retrieval is a working prototype, not yet tested at useful scale. Generated files (`rag/reports/`, `rag/chunks.json`, `rag/embeddings.json`) are git-ignored.
+
+Usage:
+
+    python rag/search.py how many battery tickets are open
+
 ## Data quality and audit
 
 - Table `gold.audit_runs` logs each check per run: unknown station rows, orphan date keys, duplicate fact keys, freshness (Gold vs Silver snapshot), and Gold vs Silver counts for tickets, tasks and feedback.
