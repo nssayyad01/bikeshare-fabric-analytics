@@ -23,7 +23,7 @@ Detailed docs: [Architecture diagram](docs/architecture.md) and [Data dictionary
 ## Pipelines
 
 - **pl_refresh_master** (hourly, scheduled): `nb_refresh_gbfs` -> `nb_refresh_weather` -> Gold daily refresh (dim_date, day_sort, dim_weather, dim_station SCD2 close and open, fact_station_status) -> Gold audit checks.
-- **pl_sync_operations** (daily, scheduled 09:00 IST): `copy_neon_to_bronze` -> `nb_refresh_station_mapping` -> Gold ops refresh (tickets, tasks, feedback: UPDATE then INSERT) -> ops audit.
+- **pl_sync_operations** (daily, scheduled 09:00 IST): `copy_neon_to_bronze` -> `nb_refresh_station_mapping` -> Wait (5 min) -> tickets UPDATE and INSERT (retry 2x) -> Wait (5 min) -> tasks UPDATE and INSERT (retry 2x) -> feedback UPDATE and INSERT -> ops audit -> `gold_audit_gate` (fails the run if an ops check fails).
 
 Both pipelines share the trial capacity, so do not run them together, and do not run notebooks manually while `pl_refresh_master` is running. Capacity errors (HTTP 430) are handled by retries, but overlap with the ingest pipelines can still cause them.
 
@@ -39,6 +39,7 @@ A small retrieval layer added after the core project. It runs on the laptop, not
 - `rag/extract_text.py` and `rag/chunk_text.py`: extract text from the PDF and split it into overlapping chunks.
 - `rag/embed_chunks.py`: embeds chunks with `sentence-transformers` (all-MiniLM-L6-v2, 384 dimensions).
 - `rag/search.py`: takes a question, returns the most similar chunks by cosine similarity.
+- `rag/feedback_search.py`: retrieval over 200 simulated rider feedback texts (all-MiniLM-L6-v2, top-5 cosine). Sample: "app keeps logging out" returns app_payment feedback; "staff was helpful" returns praise feedback.
 
 Current scope: one short PDF, one chunk. Retrieval is a working prototype, not yet tested at useful scale. Generated files (`rag/reports/`, `rag/chunks.json`, `rag/embeddings.json`) are git-ignored.
 
@@ -49,7 +50,8 @@ Usage:
 ## Data quality and audit
 
 - Table `gold.audit_runs` logs each check per run: unknown station rows, orphan date keys, duplicate fact keys, freshness (Gold vs Silver snapshot), and Gold vs Silver counts for tickets, tasks and feedback.
-- Checks currently log PASS/WARN/FAIL only; they do not stop the pipeline. A fail-the-pipeline rule is planned once thresholds are settled.
+- Ops checks (tickets, tasks, feedback Gold vs Silver) are enforced: `gold_audit_gate` fails the pipeline on FAIL. Other checks log PASS/WARN/FAIL only.
+- `duplicate_keys` currently reports FAIL because of historical unknown-station rows in `fact_station_status` (see Known limitations). Cleanup is deferred.
 
 ## Maintenance
 
@@ -67,11 +69,12 @@ Usage:
 - [x] 6: Git integration done (GitHub, `fabric/` folder). Data dictionary and architecture diagram done. Optional: deployment pipelines (test/prod).
 - [x] 7: Automation: simulator on GitHub Actions and daily sync schedule (verified 30 Oct 2026)
 - [x] 8: CI: ruff lint and compile check on pull requests (merged 3 Nov 2026)
+- [x] 9: Ops sync hardening: Wait activities and retries before Gold inserts (19 Nov 2026). Dimension fix for 6 GBFS stations not in Neon (19 Nov 2026).
 
 ## Known limitations
 
 - Live station data covers 14 Oct 09:28 to 16 Oct 09:22 UTC and from 23 Oct 18:51 UTC onward, with one manual snapshot on 17 Oct in between. The ~6 day gap will not be recovered, because GBFS only provides current data.
-- One GBFS station (`2278012504182672958`) is not in the Neon stations table. Its snapshots map to the Unknown station key (-1), so the Unknown count keeps growing by about 4 per hour.
+- - Six GBFS stations (`2278012504182672958` and five others) are not in the Neon stations table. They were added to `gold.dim_station` with NULL name and location, so they show without a name in visuals.
 - Station `valid_from` (SCD2) is the time our Silver load picked up a change (Neon `updated_at`), not the actual time the capacity changed in the real world.
 - Weather impact uses Dec 2013 and Jan 2024 only (2024 is ~17 days). Rain/Snow may include snow. Compare within a year; pooled numbers are misleading. Correlation, not causation.
 - Tickets and rider feedback are simulated; classifier accuracy is not real-world.
@@ -80,6 +83,7 @@ Usage:
 - The map visual shows a "being retired soon" warning.
 - Gold refresh is driven by pipelines now, but the Gold SQL lives in `sql/gold/` and in `gold_build.sql` section 19.
 - Independent portfolio project using public Citi Bike data. Not affiliated with Citi Bike or Lyft.
+- `gold.fact_station_status` has 6,172 historical rows with station_key = -1 (duplicates from before the dimension fix). They are excluded from current-state measures via `is_installed = 1`, but not deleted. Cleanup is deferred until after the trial.
 
 ## Repo contents
 
@@ -93,10 +97,11 @@ Usage:
 - `sql/gold/gold_build.sql`: Gold layer record. Sections 01-16 are the one-time build, 17-18 are applied fixes, 19 is the refresh SQL used by the pipelines. Do not run the file top to bottom.
 - `.github/workflows/ci.yml`: lint and compile check on pull requests and pushes to main
 - `pyproject.toml`: ruff config (excludes fabric/ notebooks, which are auto-generated)
+- `rag/`: local RAG prototype scripts (not run in Fabric), see Add-on section.
 
 ## Setup
 
 1. Create a `.env` file with `DATABASE_URL` (never commit it). Use a plain `postgresql://` string with `sslmode=require`.
-2. Install dependencies: `pip install -r requirements.txt`
+2. Install dependencies: `pip install -r requirements.txt` (use a virtual environment, `.venv`, which is git-ignored).
 
 For the simulator on GitHub Actions, add the same value as a repository secret named `DATABASE_URL`.

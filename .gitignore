@@ -222,3 +222,4 @@ __marimo__/
 rag/reports/
 rag/chunks.json
 rag/embeddings.json
+rag/feedback.csv
